@@ -1,0 +1,374 @@
+.enhanced-analysis {
+  margin-top: 24px;
+  border-top: 2px solid #e8ecf1;
+  padding-top: 24px;
+}
+
+.ea-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ea-badge {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ea-time {
+  font-size: 11px;
+  color: #999;
+  font-weight: 400;
+  margin-left: auto;
+}
+
+.ea-section {
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.ea-section h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Trust Score */
+.ea-trust-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.ea-trust-score {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ea-trust-max {
+  font-size: 18px;
+  font-weight: 400;
+  color: #999;
+}
+
+.ea-trust-info h4 {
+  margin-bottom: 4px;
+}
+
+.ea-trust-info p {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Breakdown bars */
+.ea-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ea-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ea-bar-label {
+  width: 140px;
+  font-size: 12px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.ea-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #f0f2f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ea-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.ea-bar-value {
+  width: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  text-align: right;
+}
+
+/* Risk factors */
+.ea-risks {
+  background: #fff5f5;
+  border: 1px solid #fde2e2;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.ea-risks h5 {
+  font-size: 13px;
+  color: #e74c3c;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ea-risks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ea-risks li {
+  font-size: 12px;
+  color: #c0392b;
+  padding: 3px 0;
+  padding-left: 14px;
+  position: relative;
+}
+
+.ea-risks li::before {
+  content: '!';
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+
+/* Sentiment Grid */
+.ea-sentiment-grid {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ea-sent-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.ea-sent-pos { background: #f0fdf4; }
+.ea-sent-neu { background: #f8f9fa; }
+.ea-sent-neg { background: #fef2f2; }
+
+.ea-sent-pct {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.ea-sent-pos .ea-sent-pct { color: #2ecc71; }
+.ea-sent-neu .ea-sent-pct { color: #999; }
+.ea-sent-neg .ea-sent-pct { color: #e74c3c; }
+
+.ea-sent-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.ea-sent-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #999;
+}
+
+.ea-confidence {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.ea-conf-high { background: #d4edda; color: #155724; }
+.ea-conf-medium { background: #fff3cd; color: #856404; }
+.ea-conf-low { background: #f8d7da; color: #721c24; }
+
+/* Fake Detection */
+.ea-fake-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ea-fake-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ea-fake-pct {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.ea-fake-assessment {
+  font-size: 13px;
+  color: #666;
+}
+
+.ea-fake-dupes {
+  font-size: 12px;
+  color: #f39c12;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ea-icon-ok { color: #2ecc71; }
+.ea-icon-warn { color: #f39c12; }
+
+/* Flagged reviews */
+.ea-flagged-toggle {
+  background: none;
+  border: 1px solid #e8ecf1;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ea-flagged-toggle:hover {
+  background: #f8f9fa;
+}
+
+.ea-flagged-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ea-flagged-item {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.ea-flagged-score {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d97706;
+  margin-bottom: 4px;
+}
+
+.ea-flagged-text {
+  font-size: 12px;
+  color: #555;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.ea-flagged-reasons {
+  list-style: disc;
+  padding-left: 18px;
+  margin: 0;
+}
+
+.ea-flagged-reasons li {
+  font-size: 11px;
+  color: #92400e;
+}
+
+/* Summary */
+.ea-summary-overall {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.ea-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ea-summary-box {
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.ea-summary-pos {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.ea-summary-neg {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.ea-summary-box h5 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.ea-summary-pos h5 { color: #166534; }
+.ea-summary-neg h5 { color: #991b1b; }
+
+.ea-summary-box p {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.ea-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ea-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.ea-tag-pos { background: #dcfce7; color: #166534; }
+.ea-tag-neg { background: #fee2e2; color: #991b1b; }
+
+@media (max-width: 768px) {
+  .ea-summary-grid { grid-template-columns: 1fr; }
+  .ea-sentiment-grid { flex-direction: column; }
+  .ea-trust-header { flex-direction: column; text-align: center; }
+  .ea-sent-meta { flex-direction: column; gap: 4px; }
+}

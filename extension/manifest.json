@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "SmartShop AI Scraper",
+  "version": "1.0.0",
+  "description": "Silently scrapes product data from e-commerce platforms for SmartShop AI analysis",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "*://www.amazon.com/*",
+    "*://www.ebay.com/*",
+    "*://*.aliexpress.com/*",
+    "*://*.aliexpress.us/*",
+    "*://*.daraz.pk/*",
+    "http://localhost:5000/*",
+    "http://localhost/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.amazon.com/*",
+        "*://www.ebay.com/*",
+        "*://*.aliexpress.com/*",
+        "*://*.aliexpress.us/*",
+        "*://*.daraz.pk/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

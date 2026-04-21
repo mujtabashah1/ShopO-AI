@@ -1,0 +1,21 @@
+{
+  "name": "smart-shopping-ai",
+  "version": "1.0.0",
+  "description": "MERN Stack Smart Shopping AI - Fake Product Detection & Sentiment Analysis",
+  "scripts": {
+    "server": "cd server && node server.js",
+    "client": "cd client && npm start",
+    "python-ai": "cd python-ai && python -m uvicorn main:app --reload --port 8000",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev-all": "concurrently \"npm run server\" \"npm run client\" \"npm run python-ai\"",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "install-python": "cd python-ai && pip install -r requirements.txt",
+    "build": "cd client && npm run build"
+  },
+  "keywords": ["mern", "ai", "shopping", "fake-detection", "sentiment-analysis"],
+  "author": "SmartShop AI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

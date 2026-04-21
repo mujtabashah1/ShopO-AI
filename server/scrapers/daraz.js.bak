@@ -1,0 +1,593 @@
+/**
+ * Daraz Scraper
+ * -------------
+ * Scrapes product listings from Daraz.pk.
+ *
+ * Strategy (multi-tier):
+ *   0. JSON-LD / embedded script data extraction (most resilient)
+ *   1. PRIMARY: HTTP request + Cheerio HTML parsing (fast, no browser needed).
+ *      Daraz renders the product grid server-side, so we can parse it directly.
+ *   2. FALLBACK: Puppeteer browser with resource blocking (images/fonts/CSS skipped)
+ *      to handle pages that need JS hydration.
+ *
+ * IMPORTANT: Daraz prices are in PKR (Pakistani Rupees).
+ * All prices are converted to USD using live exchange rates
+ * fetched via the exchangeRate module (with hardcoded fallback).
+ */
+
+const axios = require('axios');
+const cheerio = require('cheerio');
+const { getBrowser } = require('./browserPool');
+const { getRate } = require('../config/exchangeRate');
+
+const MAX_PRODUCTS = 8;
+
+// Fallback rate in case exchange rate module hasn't loaded
+const FALLBACK_PKR_PER_USD = 280;
+
+/**
+ * Convert PKR to USD using live exchange rate.
+ * Falls back to hardcoded rate if live rate unavailable.
+ */
+const convertPKRtoUSD = (pkr) => {
+  const pkrPerUsd = getRate('USD', 'PKR') || FALLBACK_PKR_PER_USD;
+  return Math.round((pkr / pkrPerUsd) * 100) / 100;
+};
+
+/**
+ * Parse a PKR price string like "Rs. 195,509" or "Rs.195509" → number
+ */
+const parsePKRPrice = (text) => {
+  if (!text) return 0;
+  const cleaned = text
+    .replace(/Rs\.?/gi, '')
+    .replace(/PKR/gi, '')
+    .replace(/₨/g, '')
+    .replace(/,/g, '')
+    .replace(/\s/g, '')
+    .trim();
+  const match = cleaned.match(/^(\d+(?:\.\d+)?)/);
+  return match ? parseFloat(match[1]) : 0;
+};
+
+/**
+ * Parse review count from text like "(3)", "3 Reviews", "(12)"
+ */
+const parseReviewCount = (text) => {
+  if (!text) return 0;
+  const match = text.match(/\((\d+)\)|(\d+)\s*review/i);
+  return match ? parseInt(match[1] || match[2]) : 0;
+};
+
+/**
+ * Parse rating from text like "4.5", "4.5 out of 5"
+ */
+const parseRating = (text) => {
+  if (!text) return 0;
+  const match = text.match(/([\d.]+)/);
+  const val = match ? parseFloat(match[1]) : 0;
+  return val > 5 ? 0 : val;
+};
+
+/**
+ * Check if a product name is relevant to the search query.
+ */
+const isRelevant = (name, queryWords) => {
+  const nameLower = (name || '').toLowerCase();
+  const significantWords = queryWords.filter(w => w.length >= 2);
+  if (significantWords.length === 0) return true;
+  return significantWords.every(w => nameLower.includes(w));
+};
+
+/**
+ * USER-AGENT rotation — use different UAs for retries to avoid fingerprinting.
+ */
+const USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+];
+
+/**
+ * Extract product data from JSON-LD or embedded script tags.
+ * Daraz (Lazada platform) often embeds structured data in the page.
+ * This is the most resilient approach — independent of CSS class names.
+ */
+const extractFromScriptData = ($, queryWords) => {
+  const items = [];
+
+  // --- Strategy 0a: JSON-LD structured data ---
+  try {
+    $('script[type="application/ld+json"]').each((i, script) => {
+      if (items.length >= MAX_PRODUCTS) return false;
+      try {
+        const data = JSON.parse($(script).html());
+        // Handle single product
+        if (data['@type'] === 'Product' && data.name && data.offers) {
+          const name = data.name;
+          if (!isRelevant(name, queryWords)) return;
+          const offers = Array.isArray(data.offers) ? data.offers[0] : data.offers;
+          const pricePKR = parseFloat(offers.price || offers.lowPrice || 0);
+          if (pricePKR < 100) return;
+          const rating = data.aggregateRating ? parseFloat(data.aggregateRating.ratingValue || 0) : 0;
+          const reviewCount = data.aggregateRating ? parseInt(data.aggregateRating.reviewCount || data.aggregateRating.ratingCount || 0) : 0;
+          const image = Array.isArray(data.image) ? data.image[0] : (data.image || '');
+          const link = data.url || offers.url || '';
+          items.push({ name, pricePKR, image, link, rating, reviewCount });
+        }
+        // Handle ItemList (search results page)
+        if (data['@type'] === 'ItemList' && Array.isArray(data.itemListElement)) {
+          for (const item of data.itemListElement) {
+            if (items.length >= MAX_PRODUCTS) break;
+            const product = item.item || item;
+            if (!product.name) continue;
+            if (!isRelevant(product.name, queryWords)) continue;
+            const offers = product.offers ? (Array.isArray(product.offers) ? product.offers[0] : product.offers) : {};
+            const pricePKR = parseFloat(offers.price || offers.lowPrice || 0);
+            if (pricePKR < 100) continue;
+            const rating = product.aggregateRating ? parseFloat(product.aggregateRating.ratingValue || 0) : 0;
+            const reviewCount = product.aggregateRating ? parseInt(product.aggregateRating.reviewCount || product.aggregateRating.ratingCount || 0) : 0;
+            const image = Array.isArray(product.image) ? product.image[0] : (product.image || '');
+            const link = product.url || offers.url || '';
+            items.push({ name: product.name, pricePKR, image, link: link.startsWith('http') ? link : `https://www.daraz.pk${link}`, rating, reviewCount });
+          }
+        }
+      } catch (e) { /* malformed JSON-LD, skip */ }
+    });
+  } catch (e) { /* no JSON-LD */ }
+
+  // --- Strategy 0b: window.__INITIAL_STATE__ or window.pageData ---
+  if (items.length === 0) {
+    try {
+      $('script').each((i, script) => {
+        if (items.length >= MAX_PRODUCTS) return false;
+        const text = $(script).html() || '';
+        // Look for Lazada/Daraz embedded data patterns
+        const patterns = [
+          /window\.pageData\s*=\s*(\{.+?\});/s,
+          /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});/s,
+          /"listItems"\s*:\s*(\[.+?\])(?:,|\})/s
+        ];
+        for (const pattern of patterns) {
+          const match = text.match(pattern);
+          if (match) {
+            try {
+              const data = JSON.parse(match[1]);
+              // Navigate to product list
+              const productList = data.listItems || data.mods?.listItems || 
+                                  data.mainInfo?.listItems || (Array.isArray(data) ? data : null);
+              if (Array.isArray(productList)) {
+                for (const p of productList) {
+                  if (items.length >= MAX_PRODUCTS) break;
+                  const name = p.name || p.title || p.productTitle || '';
+                  if (!name || !isRelevant(name, queryWords)) continue;
+                  const pricePKR = parseFloat(p.price || p.priceShow || p.originalPrice || 0);
+                  if (pricePKR < 100) continue;
+                  const image = p.image || p.imgUrl || p.productImage || '';
+                  const link = p.productUrl || p.itemUrl || p.link || '';
+                  const rating = parseFloat(p.ratingScore || p.rating || 0);
+                  const reviewCount = parseInt(p.review || p.reviewCount || p.ratingCount || 0);
+                  items.push({
+                    name, pricePKR, image,
+                    link: link.startsWith('http') ? link : `https://www.daraz.pk${link}`,
+                    rating: rating > 5 ? 0 : rating, reviewCount
+                  });
+                }
+              }
+            } catch (e) { /* json parse fail */ }
+          }
+        }
+      });
+    } catch (e) { /* no embedded data */ }
+  }
+
+  return items;
+};
+
+/**
+ * PRIMARY: Scrape Daraz via HTTP request + Cheerio.
+ * Daraz renders product listings in server-side HTML, so this is fast and reliable.
+ * Includes retry logic with different User-Agent on failure.
+ */
+const scrapeDarazHttp = async (query) => {
+  console.log(`  🌐 [Daraz] Trying HTTP approach for: "${query}"`);
+
+  const url = `https://www.daraz.pk/catalog/?q=${encodeURIComponent(query)}`;
+
+  let html = null;
+
+  // Try with up to 2 different User-Agents
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await axios.get(url, {
+        timeout: 25000,
+        headers: {
+          'User-Agent': USER_AGENTS[attempt % USER_AGENTS.length],
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Cache-Control': 'no-cache',
+          'Referer': 'https://www.daraz.pk/',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'same-origin'
+        }
+      });
+      html = response.data;
+      break;
+    } catch (err) {
+      console.warn(`  ⚠️ [Daraz] HTTP attempt ${attempt + 1} failed: ${err.message}`);
+      if (attempt === 1) throw err;
+      await new Promise(r => setTimeout(r, 2000)); // Brief pause before retry
+    }
+  }
+
+  if (!html) return [];
+
+  const $ = cheerio.load(html);
+  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1);
+  const items = [];
+
+  // --- Strategy 0: JSON-LD / embedded script data (most resilient) ---
+  const scriptItems = extractFromScriptData($, queryWords);
+  if (scriptItems.length > 0) {
+    console.log(`  ✅ [Daraz] JSON-LD/script extraction found ${scriptItems.length} items`);
+    return scriptItems;
+  }
+
+  // --- Strategy 1: data-qa-locator="product-item" cards ---
+  $('[data-qa-locator="product-item"]').each((i, card) => {
+    if (items.length >= MAX_PRODUCTS) return false;
+    const item = parseCardCheerio($, card, queryWords);
+    if (item) items.push(item);
+  });
+
+  // --- Strategy 2: gridItem class pattern ---
+  if (items.length === 0) {
+    $('[class*="gridItem"], [class*="product-item"], [class*="ProductItem"], [class*="product-card"]').each((i, card) => {
+      if (items.length >= MAX_PRODUCTS) return false;
+      const item = parseCardCheerio($, card, queryWords);
+      if (item) items.push(item);
+    });
+  }
+
+  // --- Strategy 3: Parse product links directly from HTML (most robust fallback) ---
+  if (items.length === 0) {
+    const seen = new Set();
+    $('a[href*="/products/"]').each((i, a) => {
+      if (items.length >= MAX_PRODUCTS) return false;
+      const href = $(a).attr('href') || '';
+      if (!href || seen.has(href)) return;
+      seen.add(href);
+
+      const name = $(a).text().trim().split('\n')[0].trim();
+      if (!name || name.length < 10) return;
+      if (!isRelevant(name, queryWords)) return;
+
+      // Look for price near the link's parent container
+      const parent = $(a).closest('li, [class*="item"], [class*="card"], [data-qa-locator]');
+      let pricePKR = 0;
+      const parentText = parent.length ? parent.text() : $(a).parent().text();
+      const priceMatch = parentText.match(/Rs\.?\s*([\d,]+)/i);
+      if (priceMatch) pricePKR = parseFloat(priceMatch[1].replace(/,/g, ''));
+      if (pricePKR < 100) return;
+
+      const img = (parent.length ? parent : $(a).parent()).find('img').first();
+      const image = img.attr('src') || img.attr('data-src') || '';
+      const fullLink = href.startsWith('http') ? href : `https://www.daraz.pk${href}`;
+
+      items.push({ name, pricePKR, image, link: fullLink, rating: 0, reviewCount: 0 });
+    });
+  }
+
+  console.log(`  ✅ [Daraz] HTTP found ${items.length} raw items`);
+  return items;
+};
+
+/**
+ * Parse a single product card using Cheerio selectors.
+ */
+const parseCardCheerio = ($, card, queryWords) => {
+  try {
+    const $card = $(card);
+    const cardText = $card.text();
+    const lines = cardText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+
+    // Get name — expanded selectors for current Daraz HTML
+    let name = '';
+    const nameEl = $card.find('[class*="title"], [class*="Title"], [class*="name"], [class*="product-title"], [class*="RichTextElement"], h2, h3').first();
+    if (nameEl.length) name = nameEl.text().trim() || nameEl.attr('title') || '';
+    if (!name && lines.length > 0) name = lines[0];
+    if (!name || name.length < 5) return null;
+    if (!isRelevant(name, queryWords)) return null;
+
+    // Get price — expanded selectors for current Daraz HTML
+    let pricePKR = 0;
+    const priceEl = $card.find('[class*="price"], [class*="Price"], [class*="ooOIm"], [class*="price--current"]').first();
+    if (priceEl.length) pricePKR = parsePKRPrice(priceEl.text());
+    if (!pricePKR) {
+      for (const line of lines) {
+        if (line.match(/Rs\.?|₨|PKR/i) && !line.includes('% Off') && !line.includes('Coins')) {
+          const v = parsePKRPrice(line);
+          if (v >= 100) { pricePKR = v; break; }
+        }
+      }
+    }
+    if (!pricePKR || pricePKR < 100) return null;
+
+    // Get image
+    const imgEl = $card.find('img').first();
+    const image = imgEl.attr('src') || imgEl.attr('data-src') || imgEl.attr('data-lazy-src') || '';
+
+    // Get link
+    const linkEl = $card.find('a[href*="/products/"]').first();
+    const rawLink = linkEl.attr('href') || '';
+    if (!rawLink) return null;
+    const link = rawLink.startsWith('http') ? rawLink : `https://www.daraz.pk${rawLink}`;
+
+    // Get rating and review count — tightened selectors to avoid false matches
+    const ratingEl = $card.find('[class*="rating"], [class*="star"], [aria-label*="rating"]').first();
+    const rating = parseRating(ratingEl.text().trim() || ratingEl.attr('aria-label') || '');
+    // More specific review count selectors (avoid matching unrelated 'count' elements)
+    const reviewEl = $card.find('[class*="reviewCount"], [class*="review-count"], [class*="review"] [class*="count"], [class*="rating"] + [class*="count"], [class*="ratingStar"] ~ span').first();
+    let reviewCount = parseReviewCount(reviewEl.text().trim());
+    // Fallback: scan card text for patterns like "(123)" near rating elements
+    if (!reviewCount && ratingEl.length) {
+      const ratingParent = ratingEl.parent();
+      const parentText = ratingParent.text().trim();
+      reviewCount = parseReviewCount(parentText);
+    }
+
+    return { name, pricePKR, image, link, rating, reviewCount };
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * FALLBACK: Scrape Daraz via Puppeteer browser.
+ * Resources (images, fonts, media) are blocked to significantly speed up loading.
+ */
+const scrapeDarazBrowser = async (query) => {
+  console.log(`  🌐 [Daraz] Trying browser fallback for: "${query}"`);
+
+  const browser = await getBrowser();
+  const page = await browser.newPage();
+
+  try {
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    );
+
+    // Block images, fonts, media to dramatically speed up page loading
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const type = req.resourceType();
+      const url = req.url();
+      if (['image', 'font', 'media'].includes(type)) {
+        req.abort();
+      } else if (type === 'script' && (
+        url.includes('google-analytics') || url.includes('facebook') ||
+        url.includes('doubleclick') || url.includes('gtm.js') ||
+        url.includes('clarity.ms') || url.includes('hotjar')
+      )) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    const url = `https://www.daraz.pk/catalog/?q=${encodeURIComponent(query)}`;
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    // Wait for product cards to appear (up to 15s)
+    try {
+      await page.waitForSelector(
+        '[data-qa-locator="product-item"], [class*="gridItem"], a[href*="/products/"]',
+        { timeout: 15000 }
+      );
+    } catch (e) {
+      console.warn(`  ⚠️ [Daraz] Cards slow to appear — proceeding anyway`);
+    }
+
+    // Trigger lazy-loading with gentle scrolls
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => window.scrollBy(0, 500));
+      await new Promise(r => setTimeout(r, 1200));
+    }
+
+    // Dismiss modals/banners
+    try {
+      const closeSelectors = [
+        '[class*="modal"] [class*="close"]', '[class*="overlay"] [class*="close"]',
+        '[aria-label="Close"]', 'button[class*="close"]', '.close-btn'
+      ];
+      for (const sel of closeSelectors) {
+        const btn = await page.$(sel);
+        if (btn) { await btn.click(); await new Promise(r => setTimeout(r, 500)); break; }
+      }
+    } catch (e) { /* no modal */ }
+
+    const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1);
+
+    const products = await page.evaluate((maxProducts, queryWords) => {
+      const items = [];
+
+      const parsePKR = (text) => {
+        if (!text) return 0;
+        const cleaned = text.replace(/Rs\.?/gi, '').replace(/PKR/gi, '')
+          .replace(/₨/g, '').replace(/,/g, '').replace(/\s/g, '').trim();
+        const m = cleaned.match(/^(\d+(?:\.\d+)?)/);
+        return m ? parseFloat(m[1]) : 0;
+      };
+
+      const isDiscountText = (text) =>
+        ['% off', 'coins save', 'voucher', 'cashback', 'extra'].some(k =>
+          (text || '').toLowerCase().includes(k));
+
+      const isRelevantName = (name) => {
+        const nameLower = name.toLowerCase();
+        const sig = queryWords.filter(w => w.length >= 2);
+        return sig.length === 0 || sig.every(w => nameLower.includes(w));
+      };
+
+      // Selector cascade
+      let cards = document.querySelectorAll('[data-qa-locator="product-item"]');
+      if (cards.length === 0) cards = document.querySelectorAll('[class*="gridItem"]');
+      if (cards.length === 0) cards = document.querySelectorAll('[class*="product-card"], [class*="ProductCard"]');
+
+      for (const card of cards) {
+        if (items.length >= maxProducts) break;
+        try {
+          const allText = card.innerText || '';
+          const lines = allText.split('\n').map(l => l.trim()).filter(l => l);
+          if (!lines.length) continue;
+
+          const titleEl = card.querySelector('[class*="title"], [class*="Title"], [class*="name"], h2, h3');
+          const name = titleEl ? (titleEl.textContent.trim() || lines[0]) : lines[0];
+          if (!name || name.length < 5) continue;
+          if (!isRelevantName(name)) continue;
+
+          let pricePKR = 0;
+          for (const el of card.querySelectorAll('[class*="price"], [class*="Price"], [class*="ooOIm"]')) {
+            const t = el.textContent.trim();
+            if (isDiscountText(t)) continue;
+            if (t.match(/Rs\.?|₨|PKR/i)) {
+              const v = parsePKR(t);
+              if (v >= 100) { pricePKR = v; break; }
+            }
+          }
+          if (!pricePKR) {
+            for (const line of lines) {
+              if (line.match(/Rs\.?|₨|PKR/i) && !isDiscountText(line)) {
+                const v = parsePKR(line);
+                if (v >= 100) { pricePKR = v; break; }
+              }
+            }
+          }
+          if (!pricePKR) continue;
+
+          const imgEl = card.querySelector('img');
+          const image = imgEl ? (imgEl.src || imgEl.dataset.src || '') : '';
+          const linkEl = card.querySelector('a[href*="/products/"]');
+          const link = linkEl ? linkEl.href : '#';
+          if (link === '#') continue;
+
+          const ratingEl = card.querySelector('[class*="rating"], [class*="star"], [aria-label*="rating"]');
+          const ratingText = ratingEl ? (ratingEl.getAttribute('aria-label') || ratingEl.textContent) : '';
+          const ratingMatch = ratingText.match(/([\d.]+)/);
+          const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+
+          // Tightened review count selectors to avoid false matches
+          const reviewEl = card.querySelector('[class*="reviewCount"], [class*="review-count"], [class*="review"] [class*="count"], [class*="ratingStar"] ~ span');
+          let reviewText = reviewEl ? reviewEl.textContent : '';
+          let reviewMatch = reviewText.match(/\((\d+)\)|(\d+)\s*review/i);
+          let reviewCount = reviewMatch ? parseInt(reviewMatch[1] || reviewMatch[2]) : 0;
+          // Fallback: check text near rating element
+          if (!reviewCount && ratingEl) {
+            const parentText = ratingEl.parentElement ? ratingEl.parentElement.textContent : '';
+            const parentMatch = parentText.match(/\((\d+)\)|(\d+)\s*review/i);
+            reviewCount = parentMatch ? parseInt(parentMatch[1] || parentMatch[2]) : 0;
+          }
+
+          items.push({ name, pricePKR, image, link, rating, reviewCount });
+        } catch (e) { continue; }
+      }
+
+      // Final fallback: scan product links
+      if (items.length === 0) {
+        const seen = new Set();
+        for (const a of document.querySelectorAll('a[href*="/products/"]')) {
+          if (items.length >= maxProducts) break;
+          const href = a.href;
+          if (!href || seen.has(href)) continue;
+          seen.add(href);
+          const name = (a.textContent || '').trim().split('\n')[0].trim();
+          if (!name || name.length < 10 || !isRelevantName(name)) continue;
+          const container = a.closest('li, [class*="item"], [class*="card"]') || a.parentElement;
+          if (!container) continue;
+          const m = (container.innerText || '').match(/Rs\.?\s*([\d,]+)/i);
+          const pricePKR = m ? parseFloat(m[1].replace(/,/g, '')) : 0;
+          if (pricePKR < 100) continue;
+          const img = container.querySelector('img');
+          items.push({ name, pricePKR, image: img ? (img.src || '') : '', link: href, rating: 0, reviewCount: 0 });
+        }
+      }
+
+      return items;
+    }, MAX_PRODUCTS, queryWords);
+
+    console.log(`  ✅ [Daraz] Browser found ${products.length} raw items`);
+    return products;
+
+  } finally {
+    await page.close();
+  }
+};
+
+/**
+ * Main entry point: Scrape Daraz products.
+ * Tries HTTP first (faster), falls back to browser if HTTP fails.
+ */
+const scrapeDaraz = async (query) => {
+  console.log(`🔍 [Daraz] Searching for: "${query}"`);
+
+  let rawProducts = [];
+
+  // --- Attempt 1: HTTP + Cheerio (fast, no browser) ---
+  try {
+    rawProducts = await scrapeDarazHttp(query);
+  } catch (httpErr) {
+    console.warn(`  ⚠️ [Daraz] HTTP approach failed: ${httpErr.message} — trying browser`);
+  }
+
+  // --- Attempt 2: Puppeteer browser fallback ---
+  if (rawProducts.length === 0) {
+    try {
+      rawProducts = await scrapeDarazBrowser(query);
+    } catch (browserErr) {
+      const msg = browserErr.message;
+      if (msg.includes('ERR_NAME_NOT_RESOLVED') || msg.includes('TIMEOUT') || msg.includes('ECONNRESET')) {
+        console.error(`❌ [Daraz] Network unreachable (site may be blocked or down)`);
+      } else {
+        console.error(`❌ [Daraz] Browser error:`, msg);
+      }
+      return [];
+    }
+  }
+
+  if (rawProducts.length === 0) {
+    console.log(`⚠️ [Daraz] No products found for "${query}"`);
+    return [];
+  }
+
+  // --- Convert PKR → USD and build final product objects ---
+  const result = rawProducts.map(p => {
+    const pricePKR = p.pricePKR || p.price || 0;
+    const priceUSD = convertPKRtoUSD(pricePKR);
+
+    return {
+      name: p.name,
+      price: priceUSD,                          // USD for cross-platform comparison
+      displayPrice: `Rs. ${Math.round(pricePKR).toLocaleString()} (~$${priceUSD.toFixed(0)})`,
+      originalPricePKR: pricePKR,
+      exchangeRate: `1 USD = ${getRate('USD', 'PKR') || FALLBACK_PKR_PER_USD} PKR`,
+      image: (p.image || '').startsWith('//') ? `https:${p.image}` : (p.image || ''),
+      link: p.link || '#',
+      platform: 'Daraz',
+      rating: p.rating || 0,
+      reviewCount: p.reviewCount || 0,
+      sellerRating: p.rating || 0,
+      priceCurrency: 'PKR',
+      priceSource: 'search-card'
+    };
+  });
+
+  console.log(`✅ [Daraz] Found ${result.length} products (prices converted PKR→USD)`);
+  return result;
+};
+
+module.exports = scrapeDaraz;
