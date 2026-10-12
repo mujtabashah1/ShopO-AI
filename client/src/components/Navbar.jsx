@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FiShoppingBag,
   FiMenu,
@@ -42,37 +42,37 @@ const Navbar = () => {
           className="navbar-brand"
           onClick={() => setMenuOpen(false)}
         >
-          <FiShoppingBag className="brand-icon" />
-          <span className="brand-text">ShopO-AI</span>
+          <span className="brand-mark"><FiShoppingBag className="brand-icon" /></span>
+          <span className="brand-text">ShopO<span className="brand-ai">AI</span></span>
         </Link>
 
         {/* Hamburger button (mobile) */}
-        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+        <button className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
 
         {/* Navigation links */}
-        <div className={`navbar-links ${menuOpen ? "active" : ""}`}>
-          <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>
-            Home
-          </Link>
+        <div id="main-navigation" className={`navbar-links ${menuOpen ? "active" : ""}`}>
+          <NavLink to="/" end className="nav-link" onClick={() => setMenuOpen(false)}>
+            Discover
+          </NavLink>
 
           {isAuthenticated ? (
             <>
-              <Link
+              <NavLink
                 to="/verify"
                 className="nav-link"
                 onClick={() => setMenuOpen(false)}
               >
                 <FiShield /> Verify
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/history"
                 className="nav-link"
                 onClick={() => setMenuOpen(false)}
               >
                 <FiClock /> History
-              </Link>
+              </NavLink>
               <ExtensionStatus />
               <div className="nav-user">
                 <FiUser className="user-icon" />
@@ -89,14 +89,14 @@ const Navbar = () => {
                 className="nav-link"
                 onClick={() => setMenuOpen(false)}
               >
-                Login
+                Log in
               </Link>
               <Link
                 to="/register"
                 className="nav-btn register-btn"
                 onClick={() => setMenuOpen(false)}
               >
-                Sign Up
+                Get started <span aria-hidden="true">↗</span>
               </Link>
             </>
           )}

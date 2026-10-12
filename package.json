@@ -1,7 +1,7 @@
 {
-  "name": "smart-shopping-ai",
+  "name": "shopo-ai",
   "version": "1.0.0",
-  "description": "MERN Stack Smart Shopping AI - Fake Product Detection & Sentiment Analysis",
+  "description": "Price intelligence and explainable product trust analysis across online marketplaces",
   "scripts": {
     "server": "cd server && node server.js",
     "client": "cd client && npm start",
@@ -10,11 +10,13 @@
     "dev-all": "concurrently \"npm run server\" \"npm run client\" \"npm run python-ai\"",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install",
     "install-python": "cd python-ai && pip install -r requirements.txt",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "test": "npm run test:server && npm run test:python",
+    "test:server": "node server/tests/analysis-pipeline.test.js",
+    "test:python": "\".\\python-ai\\.venv\\Scripts\\python.exe\" -m unittest discover -s python-ai/tests -p test_*.py || python -m unittest discover -s python-ai/tests -p test_*.py"
   },
   "keywords": ["mern", "ai", "shopping", "fake-detection", "sentiment-analysis"],
-  "author": "SmartShop AI Team",
-  "license": "MIT",
+  "author": "Syed Ahmad Mujtaba Shah and Muhammad Waseel",
   "devDependencies": {
     "concurrently": "^8.2.2"
   }

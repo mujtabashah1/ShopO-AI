@@ -16,8 +16,7 @@
  * Used by: verdictEngine.js during the analysis pipeline
  */
 
-const natural = require('natural');
-const TfIdf = natural.TfIdf;
+const { TfIdf } = require('natural/lib/natural/tfidf');
 
 /**
  * Build a TF-IDF vector for a document given a TfIdf instance and document index.

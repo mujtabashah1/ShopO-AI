@@ -9,7 +9,7 @@
 
 const DEFAULT_SERVER_URL = 'http://localhost:5000';
 const HEARTBEAT_INTERVAL = 25000; // 25s (keep service worker alive)
-const TAB_TIMEOUT = 90000; // 90s max per tab (extra time for CAPTCHA solving)
+const TAB_TIMEOUT = 90000; // 90s max per tab (includes manual challenge handling)
 const TASK_TIMEOUT = 180000; // 180s max per task
 
 // State
@@ -308,7 +308,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleReviewsExtracted(message, sender);
     sendResponse({ received: true });
   } else if (message.type === 'CAPTCHA_DETECTED') {
-    // Auto-solve failed — bring the tab to front so user can solve manually
+    // Bring the tab to front so the user can resolve the challenge manually.
     if (sender.tab?.id) {
       console.log(`[SmartShop] CAPTCHA on ${message.platform} — bringing tab to front`);
       chrome.tabs.update(sender.tab.id, { active: true });

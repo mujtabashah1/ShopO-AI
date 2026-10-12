@@ -73,7 +73,7 @@
 }
 
 .go-search-btn:hover {
-  background: #3d8de0;
+  background: #163d2a;
 }
 
 /* ─── History List ─── */
@@ -98,7 +98,7 @@
 .history-item:hover {
   border-color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.12);
+  box-shadow: 0 4px 12px rgba(32, 76, 55, 0.12);
 }
 
 /* Image */

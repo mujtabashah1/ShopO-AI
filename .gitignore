@@ -3,8 +3,10 @@ node_modules/
 client/node_modules/
 server/node_modules/
 
-# Environment Variables
+# Environment variables (commit only the sanitized template)
 .env
+.env.*
+!.env.example
 
 # Build Output
 client/build/
@@ -24,7 +26,32 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Old Python backup
 __pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local development services
+.local/
+python-ai/.venv/
+
+# Browser automation and local test artifacts
+.playwright/
+playwright-report/
+test-results/
+browser-profile*/
+
+# Temporary files and local data exports
+tmp/
+temp/
+*.tmp
+*.sqlite
+*.sqlite3
+*.db

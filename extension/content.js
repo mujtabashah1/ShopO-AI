@@ -625,25 +625,18 @@
 
     // === CAPTCHA Handling ===
     if (isCaptchaPage()) {
-      console.log(`[SmartShop] CAPTCHA detected on ${platform} — attempting auto-solve...`);
+      console.log(`[SmartShop] CAPTCHA detected on ${platform} — manual action required`);
+      // Respect the site's access control. Bring the tab forward and wait for
+      // the user; the extension does not attempt to solve or bypass CAPTCHAs.
+      chrome.runtime.sendMessage({ type: 'CAPTCHA_DETECTED', platform });
 
-      // Try auto-solve first
-      const solved = await solveSlideCaptcha(3);
-
-      if (!solved) {
-        console.log(`[SmartShop] Auto-solve failed — bring tab to front for manual solve`);
-        // Tell background to make this tab active so user can solve
-        chrome.runtime.sendMessage({ type: 'CAPTCHA_DETECTED', platform });
-
-        // Wait up to 60s for manual solve
-        const manualSolved = await waitForCaptchaResolution(60000);
-        if (!manualSolved) {
-          console.log(`[SmartShop] CAPTCHA not solved within 60s — giving up`);
-          chrome.runtime.sendMessage({
-            type: 'DOM_EXTRACTED', platform, url: location.href, html: ''
-          });
-          return;
-        }
+      const manualSolved = await waitForCaptchaResolution(60000);
+      if (!manualSolved) {
+        console.log(`[SmartShop] CAPTCHA not resolved within 60s — giving up`);
+        chrome.runtime.sendMessage({
+          type: 'DOM_EXTRACTED', platform, url: location.href, html: ''
+        });
+        return;
       }
 
       console.log(`[SmartShop] CAPTCHA resolved — waiting for page to load...`);

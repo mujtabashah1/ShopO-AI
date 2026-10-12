@@ -7,7 +7,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiCpu, FiBarChart2, FiShield, FiCamera, FiUploadCloud, FiX } from 'react-icons/fi';
+import { FiSearch, FiCpu, FiBarChart2, FiShield, FiCamera, FiArrowUpRight, FiCheck, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import api from '../services/api';
@@ -148,43 +148,48 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
+          <div className="hero-eyebrow"><span /> A little intelligence. A better purchase.</div>
           <h1 className="hero-title">
-            Smart Shopping with
-            <span className="hero-highlight"> AI Protection</span>
+            Find what you love.<br />
+            <span className="hero-highlight">Know what you buy.</span>
           </h1>
           <p className="hero-subtitle">
-            Detect fake products, analyze reviews, and make informed 
-            purchasing decisions across AliExpress, eBay, Amazon, and Daraz.
+            A second opinion for your next purchase. Compare prices, understand
+            reviews, and spot the red flags before you checkout.
           </p>
 
           {/* Search Form */}
           <form className="search-form" onSubmit={handleSearch}>
+            <label className="search-label" htmlFor="product-search">What’s on your wishlist?</label>
             <div className="search-input-wrapper">
               <FiSearch className="search-icon" />
               <input
+                id="product-search"
                 type="text"
                 className="search-input"
-                placeholder="Search for a product... (e.g., iPhone 15, Samsung Galaxy S24)"
+                placeholder="Try wireless headphones or an iPhone…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
               <button type="submit" className="search-btn" disabled={imageSearching}>
-                {imageSearching ? 'Identifying...' : 'Search'}
+                {imageSearching ? 'Identifying...' : <>Search <FiArrowRight /></>}
               </button>
             </div>
 
             {/* Platform Selection */}
             <div className="platform-selection">
+              <span className="platform-label">Compare on</span>
               {Object.entries(platforms).map(([name, active]) => (
                 <label key={name} className={`platform-chip ${active ? 'active' : ''}`}>
                   <input
                     type="checkbox"
                     checked={active}
                     onChange={() => togglePlatform(name)}
-                    style={{ display: 'none' }}
+                    className="platform-checkbox"
                   />
                   <span className="chip-name">
-                    {name.charAt(0).toUpperCase() + name.slice(1)}
+                    {active && <FiCheck aria-hidden="true" />}
+                    {{ aliexpress: 'AliExpress', ebay: 'eBay', amazon: 'Amazon', daraz: 'Daraz' }[name]}
                   </span>
                 </label>
               ))}
@@ -208,18 +213,42 @@ const Home = () => {
             style={{ display: 'none' }}
             onChange={(e) => handleImageSearch(e.target.files?.[0])}
           />
+          <div className="popular-searches"><span>A little inspiration</span>{['Headphones', 'Smart watch', 'Sneakers'].map(term => <button key={term} type="button" onClick={() => setQuery(term)}>{term} <FiArrowUpRight /></button>)}</div>
+        </div>
+        <div className="hero-preview" aria-label="Illustrative product analysis">
+          <div className="preview-topline"><span><FiShield /> The purchase, decoded</span><span className="example-label">Example analysis</span></div>
+          <div className="preview-product">
+            <div className="preview-orbit" />
+            <svg className="headphone-art" viewBox="0 0 300 260" fill="none" aria-hidden="true">
+              <defs><linearGradient id="headband" x1="65" y1="30" x2="245" y2="230" gradientUnits="userSpaceOnUse"><stop stopColor="#46524d"/><stop offset="1" stopColor="#0e1915"/></linearGradient></defs>
+              <ellipse cx="154" cy="236" rx="86" ry="9" fill="#102a20" opacity=".09"/>
+              <path d="M62 159V113a88 88 0 0 1 176 0v46" stroke="#17251e" strokeWidth="22" strokeLinecap="round"/>
+              <path d="M65 116a85 85 0 0 1 170 0" stroke="#738079" strokeWidth="5" strokeLinecap="round"/>
+              <path d="M63 112v66M237 112v66" stroke="#96a29a" strokeWidth="9"/>
+              <rect x="41" y="137" width="52" height="87" rx="24" fill="url(#headband)" transform="rotate(-8 41 137)"/>
+              <rect x="209" y="130" width="52" height="87" rx="24" fill="url(#headband)" transform="rotate(8 209 130)"/>
+              <path d="M57 154v45M244 151v45" stroke="#69766e" strokeWidth="3" strokeLinecap="round"/>
+            </svg>
+            <span className="preview-category">EVERYDAY ESSENTIALS</span>
+          </div>
+          <div className="preview-info"><div><h3>Wireless headphones</h3><p>Look beyond the product page.</p></div><span className="preview-check"><FiCheck /></span></div>
+          <div className="preview-signals"><div><FiBarChart2 /><span>Price comparison<small>See the bigger picture</small></span><FiArrowUpRight /></div><div><FiCpu /><span>Review insights<small>Separate signals from noise</small></span><FiArrowUpRight /></div></div>
+          <div className="preview-note"><FiShield /> More confidence. Fewer surprises.</div>
         </div>
       </section>
 
+      <section className="platform-strip" aria-label="Supported marketplaces"><span>One search. Four marketplaces.</span><div><strong className="market-amazon">amazon<span>⌣</span></strong><strong className="market-ebay"><i>e</i><i>b</i><i>a</i><i>y</i></strong><strong>AliExpress</strong><strong className="market-daraz">daraz</strong></div></section>
+
       {/* Features Section */}
       <section className="features-section">
-        <h2 className="section-title">How It Works</h2>
+        <div className="section-heading"><div><span className="section-eyebrow">SHOP WITH A CLEARER PICTURE</span><h2 className="section-title">Good decisions start with better insights.</h2></div><p>From the first search to the final verdict,<br />get a little clarity at every step.</p></div>
         <div className="features-grid">
           {features.map((feature, index) => (
             <div key={index} className="feature-card">
               <div className="feature-icon-wrapper">
                 <feature.icon size={28} />
               </div>
+              <span className="feature-number">0{index + 1}</span>
               <h3 className="feature-title">{feature.title}</h3>
               <p className="feature-description">{feature.description}</p>
             </div>
@@ -242,6 +271,13 @@ const Home = () => {
           <span className="stat-label">AI Trust Factors</span>
         </div>
       </section>
+      <footer className="home-footer">
+        <span>ShopO-AI <small>Shopping, with a second opinion.</small></span>
+        <span>Made for more thoughtful purchases.</span>
+        <a className="targlabs-credit" href="https://www.linkedin.com/company/targlabs/?viewAsMember=true" target="_blank" rel="noopener noreferrer">
+          Powered by TargLabs <FiArrowUpRight aria-hidden="true" />
+        </a>
+      </footer>
     </div>
   );
 };

@@ -119,7 +119,7 @@
 .card-title {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #182c22;
   margin: 0 0 10px 0;
   line-height: 1.4;
   min-height: 42px;
@@ -135,7 +135,7 @@
 .card-price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #4facfe;
+  color: #204c37;
 }
 
 .card-original-price {
@@ -226,7 +226,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #204c37, #48794e);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -239,7 +239,7 @@
 
 .btn-analyze:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+  box-shadow: 0 4px 15px rgba(32, 76, 55, 0.4);
 }
 
 .btn-view {
@@ -261,3 +261,13 @@
   background: #e0e0e0;
   color: #333;
 }
+
+.product-card { border-color: #e1e7db; box-shadow: 0 4px 18px #29401d05; }
+.product-card:hover { box-shadow: 0 14px 30px #29401d12; }
+.card-image-wrapper { background: #f3f6ee; height: 220px; padding: 15px; }
+.card-body { padding: 20px; }
+.card-title { letter-spacing: -.02em; }
+.card-price { font-size: 1.4rem; letter-spacing: -.045em; }
+.card-actions { padding: 0 20px 20px; }
+.btn-analyze { background: #204c37; }
+.btn-view { background: #eff3e9; color: #5c6f51; }

@@ -6,16 +6,17 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background: linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%);
+  background: radial-gradient(ellipse at 20% 30%, #eaf1e0, transparent 60%), #f8faf6;
 }
 
 .auth-card {
   background: white;
-  border-radius: 20px;
-  padding: 40px;
+  border-radius: 22px;
+  padding: 42px;
+  border: 1px solid #e0e7d8;
   width: 100%;
-  max-width: 420px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 450px;
+  box-shadow: 0 20px 60px -20px #324f2820;
 }
 
 .auth-header {
@@ -25,14 +26,14 @@
 
 .auth-icon {
   font-size: 2.5rem;
-  color: #4facfe;
+  color: #204c37;
   margin-bottom: 12px;
 }
 
 .auth-header h2 {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #182c22;
   margin: 0 0 6px 0;
 }
 
@@ -74,8 +75,8 @@
 }
 
 .form-group input:focus {
-  border-color: #4facfe;
-  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+  border-color: #204c37;
+  box-shadow: 0 0 0 3px rgba(32, 76, 55, 0.1);
 }
 
 .form-group input::placeholder {
@@ -84,7 +85,7 @@
 
 .auth-submit-btn {
   width: 100%;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #204c37, #48794e);
   color: white;
   border: none;
   padding: 14px;
@@ -98,7 +99,7 @@
 
 .auth-submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+  box-shadow: 0 6px 20px rgba(32, 76, 55, 0.4);
 }
 
 .auth-submit-btn:disabled {
@@ -114,7 +115,7 @@
 }
 
 .auth-switch a {
-  color: #4facfe;
+  color: #204c37;
   text-decoration: none;
   font-weight: 600;
 }
@@ -122,3 +123,10 @@
 .auth-switch a:hover {
   text-decoration: underline;
 }
+
+.auth-header h2 { letter-spacing: -.045em; font-size: 1.8rem; }
+.auth-header p, .auth-switch { color: #74826c; }
+.auth-icon { padding: 12px; width: 52px; height: 52px; background: #edf3e5; border-radius: 14px; }
+.form-group input { background: #fafbf8; border: 1px solid #dfe6d7; }
+.auth-submit-btn { background: #204c37; }
+@media (max-width: 480px) { .auth-card { padding: 28px 22px; } .auth-page { padding: 28px 16px; } }

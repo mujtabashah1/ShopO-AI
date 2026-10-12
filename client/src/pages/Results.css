@@ -2,7 +2,7 @@
 
 .results-page {
   min-height: calc(100vh - 65px);
-  background: #f5f7fa;
+  background: #f8faf6;
 }
 
 .results-header {
@@ -31,7 +31,7 @@
 .results-title {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #182c22;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -97,10 +97,10 @@
 }
 
 .btn-refresh:hover:not(:disabled) {
-  background: #f0f7ff;
-  border-color: #4facfe;
-  color: #4facfe;
-  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.15);
+  background: #eff4e9;
+  border-color: #204c37;
+  color: #204c37;
+  box-shadow: 0 2px 8px rgba(32, 76, 55, 0.15);
 }
 
 .btn-refresh:disabled {
@@ -157,7 +157,7 @@
 }
 
 .btn-sidebar-refresh:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #204c37, #48794e);
   color: white;
   border-color: transparent;
 }
@@ -196,7 +196,7 @@
   gap: 6px;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #182c22;
   margin: 0 0 16px 0;
   padding-bottom: 12px;
   border-bottom: 1px solid #f0f0f0;
@@ -228,17 +228,17 @@
 }
 
 .filter-option:hover {
-  background: #f0f7ff;
+  background: #eff4e9;
 }
 
 .filter-option.active {
-  background: #e3f2fd;
-  color: #4facfe;
+  background: #edf3e5;
+  color: #204c37;
   font-weight: 500;
 }
 
 .filter-option input[type="radio"] {
-  accent-color: #4facfe;
+  accent-color: #204c37;
 }
 
 .platform-status {
@@ -300,7 +300,7 @@
 }
 
 .btn-back-home {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #204c37, #48794e);
   color: white;
   border: none;
   padding: 12px 28px;
@@ -313,7 +313,7 @@
 
 .btn-back-home:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+  box-shadow: 0 4px 15px rgba(32, 76, 55, 0.4);
 }
 
 /* Responsive */

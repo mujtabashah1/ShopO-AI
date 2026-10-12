@@ -2,7 +2,7 @@
 
 .verify-page {
     min-height: calc(100vh - 65px);
-    background: #f5f7fa;
+    background: #f8faf6;
 }
 
 .verify-header {
@@ -17,11 +17,11 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    color: #1a1a2e;
+    color: #182c22;
 }
 
 .verify-header-content svg {
-    color: #4facfe;
+    color: #204c37;
 }
 
 .verify-header-content h1 {
@@ -70,7 +70,7 @@
 .card-title {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #1a1a2e;
+    color: #182c22;
     margin: 0 0 4px 0;
 }
 
@@ -93,12 +93,12 @@
 
 .drop-zone:hover,
 .drop-zone.drag-active {
-    border-color: #4facfe;
-    background: #f0f7ff;
+    border-color: #204c37;
+    background: #eff4e9;
 }
 
 .drop-icon {
-    color: #4facfe;
+    color: #204c37;
     margin-bottom: 12px;
 }
 
@@ -193,18 +193,18 @@
 }
 
 .category-item:hover {
-    border-color: #4facfe;
-    background: #f0f7ff;
+    border-color: #204c37;
+    background: #eff4e9;
 }
 
 .category-item.selected {
-    border-color: #4facfe;
-    background: linear-gradient(135deg, rgba(79, 172, 254, 0.08), rgba(0, 242, 254, 0.08));
-    box-shadow: 0 0 0 1px #4facfe;
+    border-color: #204c37;
+    background: linear-gradient(135deg, rgba(32, 76, 55, 0.08), rgba(0, 242, 254, 0.08));
+    box-shadow: 0 0 0 1px #204c37;
 }
 
 .category-item.selected svg {
-    color: #4facfe;
+    color: #204c37;
 }
 
 .cat-name {
@@ -232,15 +232,15 @@
     font-weight: 700;
     border: none;
     cursor: pointer;
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    background: linear-gradient(135deg, #204c37, #48794e);
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+    box-shadow: 0 4px 15px rgba(32, 76, 55, 0.3);
 }
 
 .verify-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.45);
+    box-shadow: 0 6px 20px rgba(32, 76, 55, 0.45);
 }
 
 .verify-btn:disabled {
@@ -297,7 +297,7 @@
     width: 48px;
     height: 48px;
     border: 4px solid #f0f0f0;
-    border-top: 4px solid #4facfe;
+    border-top: 4px solid #204c37;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin-bottom: 16px;
