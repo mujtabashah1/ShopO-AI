@@ -1,22 +1,19 @@
-# LinkedIn launch post
+# LinkedIn post draft
 
-I built **ShopO-AI** to explore a practical question: how can a shopper compare marketplace prices and review evidence without treating an opaque “AI score” as fact?
+I have completed ShopO-AI, our Final Year Project at FAST-NUCES Peshawar.
 
-The result is a full-stack price-intelligence and product-risk analysis platform. An authenticated React client streams listings from multiple marketplace adapters, compares normalized prices, and presents a clear factor-by-factor recommendation. The Express API stores searches and analyses in MongoDB, while an optional FastAPI service adds VADER/TextBlob sentiment and TF-IDF-based review signals.
+ShopO-AI lets a user search for a product on multiple shopping sites and compare the returned listings in one place. A user can also open a product analysis that shows how price, seller rating, review count, and review sentiment contributed to the result.
 
-What I implemented:
+We used React for the frontend, Node and Express for the API, MongoDB for storage, and FastAPI for additional review analysis. The review code includes AFINN, VADER, TextBlob, and TF-IDF cosine similarity.
 
-- multi-platform acquisition with incremental Server-Sent Events and isolated failures;
-- a transparent four-factor score using price position, seller rating, review volume, and sentiment;
-- duplicate/relevance review checks with TF-IDF and cosine similarity;
-- saved analysis history, JWT authentication, rate limits, CI, and technical documentation;
-- explicit separation between rule-based risk signals, classical NLP, external vision inference, and experimental logo artifacts.
+Each marketplace can change independently, which is one of the main problems we faced while working on the scrapers. The API reports results per platform so a failed adapter does not discard successful results. In our latest local check, Amazon, Daraz, and AliExpress returned products. The eBay adapter needs updated selectors.
 
-One of the most valuable lessons was that reliability is part of the feature. Marketplace layouts change, optional AI services fail, and model outputs need evidence boundaries. I designed the flow to keep partial results useful and documented what the system can—and cannot—claim. During the latest local audit, Amazon, Daraz, and AliExpress returned results; eBay needs selector maintenance, and image inference remains credential-dependent.
+The product score is kept easy to inspect. It is a rule-based risk estimate rather than a trained or validated counterfeit detector.
 
-ShopO-AI is our Final Year Project at FAST-NUCES Peshawar, developed with Muhammad Waseel under the supervision of Dr. Usman Wajid.
+The repository contains the source code, setup steps, tests, screenshots, architecture notes, and current limitations:
 
-Code, architecture, methodology, test evidence, and real application screenshots:
 https://github.com/mujtabashah1/ShopO-AI
 
-#React #NodeJS #MongoDB #FastAPI #NLP #SoftwareEngineering #MachineLearning #FinalYearProject
+Developed by Syed Ahmad Mujtaba Shah and Muhammad Waseel under the supervision of Dr. Usman Wajid.
+
+#FinalYearProject #React #NodeJS #MongoDB #FastAPI

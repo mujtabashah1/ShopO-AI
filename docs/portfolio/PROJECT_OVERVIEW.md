@@ -1,9 +1,11 @@
-# ShopO-AI portfolio overview
+# Project overview
 
-ShopO-AI is a full-stack price-intelligence and product-risk analysis platform created as a Final Year Project at FAST-NUCES Peshawar. It reduces the manual work of comparing marketplace listings by streaming results from Amazon, Daraz, AliExpress, and eBay adapters into a React interface, then storing searches and analyses in MongoDB.
+ShopO-AI is our Final Year Project at FAST-NUCES Peshawar. We built it to reduce the manual work needed to compare the same type of product on different shopping sites.
 
-The Express API combines a transparent four-factor trust score with AFINN sentiment and TF-IDF review-similarity signals. An optional FastAPI service adds VADER/TextBlob ensemble sentiment, linguistic fake-review indicators, summarization, and trustworthiness features. The project deliberately presents these outputs as risk signals: no labelled evaluation set supports a claim of reliable counterfeit detection.
+The frontend is written in React. A Node and Express API handles login, marketplace searches, scoring, and MongoDB storage. Search results are sent to the browser as each marketplace finishes, so one slow or failed scraper does not hold back every result.
 
-Engineering highlights include authenticated and rate-limited APIs, per-user caching, Server-Sent Events, partial-failure handling across marketplace adapters, optional service degradation, a React/Recharts analysis experience, deterministic Node/Python test suites, and CI. The repository also contains an experimental browser extension and logo-analysis artifacts whose current integration and evidence boundaries are explicitly documented.
+The product score uses price, seller rating, review count, and review sentiment. The project also checks for repeated review text with TF-IDF and cosine similarity. A separate FastAPI service can run VADER and TextBlob sentiment analysis and additional review checks.
+
+This score is a project heuristic, not a tested counterfeit classifier. The repository does not contain a labelled counterfeit test set.
 
 Developed by Syed Ahmad Mujtaba Shah and Muhammad Waseel under the supervision of Dr. Usman Wajid.
