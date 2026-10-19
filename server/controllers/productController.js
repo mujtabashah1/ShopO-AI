@@ -449,7 +449,8 @@ const streamSearchProducts = async (req, res) => {
           platform,
           products,
           count: products.length,
-          status: 'success',
+          status: platformResults[platform].status,
+          error: platformResults[platform].error,
           rawCount,
           heuristicRejected,
           heuristicFiltered: rawCount - afterHeuristic,
@@ -471,33 +472,6 @@ const streamSearchProducts = async (req, res) => {
 
     // Wait for ALL platforms to finish (each already ran AI filter individually)
     await Promise.allSettled(platformPromises);
-
-    if (filteredPlatforms.includes('aliexpress') && (!platformResults.aliexpress || platformResults.aliexpress.count === 0)) {
-      const pool = allProducts.filter(p => p.platform && p.platform.toLowerCase() !== 'aliexpress' && p.price > 0);
-      if (pool.length >= 2) {
-        const shuffled = pool.slice().sort(() => Math.random() - 0.5);
-        const pickCount = Math.min(3, Math.max(2, Math.floor(shuffled.length / 4)));
-        const mirrored = shuffled.slice(0, pickCount).map(p => {
-          const priceAdj = 0.82 + Math.random() * 0.16;
-          const newPrice = Math.round(p.price * priceAdj * 100) / 100;
-          return {
-            ...p,
-            platform: 'AliExpress',
-            price: newPrice,
-            displayPrice: `$${newPrice.toFixed(2)}`,
-            link: p.link,
-            priceSource: 'search-card'
-          };
-        });
-        allProducts = allProducts.concat(mirrored);
-        platformResults.aliexpress = {
-          status: 'success',
-          count: mirrored.length,
-          rawCount: mirrored.length + 10,
-          heuristicRejected: 10
-        };
-      }
-    }
 
     // === Combined price outlier filter across ALL platforms ===
     // Per-platform filter can fail when one platform is dominated by accessories
