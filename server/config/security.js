@@ -11,6 +11,9 @@ function validateEnvironment(env = process.env) {
     throw new Error('JWT_SECRET must be a unique random secret of at least 32 characters');
   }
   if (env.NODE_ENV === 'production' && !env.CLIENT_URL) throw new Error('CLIENT_URL is required in production');
+  if (env.NODE_ENV === 'production' && env.PYTHON_AI_ENABLED !== 'false' && (!env.PYTHON_AI_KEY || env.PYTHON_AI_KEY.length < 32)) {
+    throw new Error('PYTHON_AI_KEY must contain at least 32 characters when Python analysis is enabled in production');
+  }
   for (const origin of allowedOrigins(env)) {
     const url = new URL(origin);
     if (url.origin !== origin || !['http:', 'https:'].includes(url.protocol)) {

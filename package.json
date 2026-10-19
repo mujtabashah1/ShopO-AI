@@ -12,10 +12,16 @@
     "install-python": "cd python-ai && pip install -r requirements.txt",
     "build": "cd client && npm run build",
     "test": "npm run test:server && npm run test:python",
-    "test:server": "node server/tests/analysis-pipeline.test.js",
-    "test:python": "\".\\python-ai\\.venv\\Scripts\\python.exe\" -m unittest discover -s python-ai/tests -p test_*.py || python -m unittest discover -s python-ai/tests -p test_*.py"
+    "test:server": "node --test server/tests/*.test.js",
+    "test:python": "node scripts/test-python.js"
   },
-  "keywords": ["mern", "ai", "shopping", "fake-detection", "sentiment-analysis"],
+  "keywords": [
+    "mern",
+    "ai",
+    "shopping",
+    "fake-detection",
+    "sentiment-analysis"
+  ],
   "author": "Syed Ahmad Mujtaba Shah and Muhammad Waseel",
   "devDependencies": {
     "concurrently": "^8.2.2"

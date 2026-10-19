@@ -67,6 +67,12 @@ app.use((req, res, next) => {
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
+// Health probes bypass user rate limits. Readiness requires a database connection.
+app.get('/api/ready', (req, res) => {
+  const ready = require('mongoose').connection.readyState === 1;
+  res.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'unavailable' });
+});
+
 // Apply general rate limiter to all API routes
 app.use('/api', apiLimiter);
 
@@ -112,12 +118,30 @@ const startServer = async () => {
     await initExchangeRates();
     
     // Start Express server
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`\n🚀 SmartShop AI Server running on port ${PORT}`);
       console.log(`📡 API: http://localhost:${PORT}/api`);
       console.log(`💊 Health: http://localhost:${PORT}/api/health`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
     });
+    let stopping = false;
+    const shutdown = () => {
+      if (stopping) return;
+      stopping = true;
+      const deadline = setTimeout(() => process.exit(1), 15000);
+      deadline.unref();
+      server.close(async () => {
+        try {
+          await require('./scrapers/browserPool').closeBrowser();
+          await require('mongoose').disconnect();
+          clearTimeout(deadline);
+          process.exit(0);
+        } catch { process.exit(1); }
+      });
+    };
+    process.once('SIGTERM', shutdown);
+    process.once('SIGINT', shutdown);
+
   } catch (error) {
     console.error('Failed to start server:', error.message);
     process.exit(1);

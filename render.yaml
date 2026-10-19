@@ -4,8 +4,9 @@ services:
     name: smart-shopping-api
     env: node
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
+    healthCheckPath: /api/ready
     envVars:
       - key: NODE_ENV
         value: production
@@ -19,8 +20,16 @@ services:
         sync: false # e.g. https://your-vercel-app.vercel.app
       - key: PYTHON_AI_ENABLED
         value: true
-      - key: PYTHON_AI_URL
-        value: http://smart-shopping-ai:10000
+      - key: PYTHON_AI_HOSTPORT
+        fromService:
+          type: pserv
+          name: smart-shopping-ai
+          property: hostport
+      - key: PYTHON_AI_KEY
+        fromService:
+          type: pserv
+          name: smart-shopping-ai
+          envVarKey: PYTHON_AI_KEY
       - key: LLM_API_KEY
         sync: false
       - key: OPENROUTER_API_KEY
@@ -33,7 +42,7 @@ services:
         sync: false
 
   # 2. Python AI Engine
-  - type: web
+  - type: pserv
     name: smart-shopping-ai
     env: python
     rootDir: python-ai
@@ -42,3 +51,7 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: PYTHON_AI_KEY
+        generateValue: true

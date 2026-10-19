@@ -11,9 +11,11 @@ Runs alongside the Node.js server and is called via HTTP.
 """
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi.responses import JSONResponse
+import os
+import secrets
+from pydantic import BaseModel, Field, StringConstraints
+from typing import Annotated, List
 import time
 
 from services.sentiment_service import analyze_sentiment
@@ -23,36 +25,42 @@ from services.trustworthiness_service import calculate_trustworthiness
 
 app = FastAPI(title="SmartShop AI Engine", version="1.0.0")
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://localhost:3000", "http://127.0.0.1:5000", "*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# This service is called by Express, never directly by the browser.
+@app.middleware("http")
+async def service_auth(request, call_next):
+    if request.url.path != "/health":
+        key = os.getenv("PYTHON_AI_KEY", "")
+        if key and not secrets.compare_digest(request.headers.get("x-service-key", ""), key):
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized service request"})
+    return await call_next(request)
+
+
+Review = Annotated[str, StringConstraints(max_length=5000)]
+Reviews = Annotated[List[Review], Field(max_length=100)]
 
 
 class AnalyzeRequest(BaseModel):
-    reviews: List[str]
-    productName: str = ""
-    productPrice: float = 0.0
-    averagePrice: float = 0.0
+    reviews: Reviews
+    productName: str = Field(default="", max_length=500)
+    productPrice: float = Field(default=0.0, ge=0, le=1e9, allow_inf_nan=False)
+    averagePrice: float = Field(default=0.0, ge=0, le=1e9, allow_inf_nan=False)
 
 
 class SentimentRequest(BaseModel):
-    reviews: List[str]
+    reviews: Reviews
 
 
 class FakeDetectionRequest(BaseModel):
-    reviews: List[str]
-    productName: str = ""
+    reviews: Reviews
+    productName: str = Field(default="", max_length=500)
 
 
 @app.on_event("startup")
 async def startup():
     """Pre-load models and corpora on startup."""
     print("🐍 SmartShop AI Python Service starting...")
+    if os.getenv("NODE_ENV") == "production" and len(os.getenv("PYTHON_AI_KEY", "")) < 32:
+        raise RuntimeError("PYTHON_AI_KEY must contain at least 32 characters in production")
     # Trigger TextBlob corpus download check
     try:
         from textblob import TextBlob
@@ -78,7 +86,7 @@ async def health():
 
 
 @app.post("/analyze")
-async def full_analysis(req: AnalyzeRequest):
+def full_analysis(req: AnalyzeRequest):
     """Run complete analysis pipeline: sentiment + fake detection + summary + trust."""
     start = time.time()
 
@@ -102,12 +110,12 @@ async def full_analysis(req: AnalyzeRequest):
 
 
 @app.post("/sentiment")
-async def sentiment_only(req: SentimentRequest):
+def sentiment_only(req: SentimentRequest):
     """Advanced sentiment analysis only."""
     return analyze_sentiment(req.reviews)
 
 
 @app.post("/fake-detection")
-async def fake_detection_only(req: FakeDetectionRequest):
+def fake_detection_only(req: FakeDetectionRequest):
     """Fake review detection only."""
     return detect_fake_reviews(req.reviews, req.productName)

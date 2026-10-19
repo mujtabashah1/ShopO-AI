@@ -16,7 +16,7 @@ const { scrapeProductPagePrice } = require('../scrapers/priceScraper');
 const axios = require('axios');
 const extensionManager = require('../extension/extensionManager');
 
-const PYTHON_AI_URL = process.env.PYTHON_AI_URL || 'http://localhost:8000';
+const PYTHON_AI_URL = process.env.PYTHON_AI_URL || (process.env.PYTHON_AI_HOSTPORT ? `http://${process.env.PYTHON_AI_HOSTPORT}` : 'http://localhost:8000');
 const PYTHON_AI_ENABLED = process.env.PYTHON_AI_ENABLED !== 'false';
 
 /**
@@ -150,6 +150,9 @@ const analyzeProduct = async (req, res) => {
       console.log(`  📝 No reviews found — analysis will rely on rating/count data only`);
     }
 
+    // Apply the same resource budget to scraped and extension-provided reviews.
+    reviewTexts = Array.isArray(reviewTexts) ? reviewTexts.filter(r => typeof r === 'string').slice(0, 100).map(r => r.slice(0, 5000)) : [];
+
     const analysisResult = getVerdict({
       productName,
       productPrice: confirmedPrice,
@@ -171,7 +174,7 @@ const analyzeProduct = async (req, res) => {
           productName,
           productPrice: confirmedPrice,
           averagePrice: parseFloat(averagePrice) || 0
-        }, { timeout: 30000 });
+        }, { timeout: 30000, headers: { 'X-Service-Key': process.env.PYTHON_AI_KEY || '' } });
         enhancedAnalysis = pyResponse.data;
         console.log(`  ✅ Python AI: trust=${enhancedAnalysis.trustworthiness?.trustScore}, fake=${enhancedAnalysis.fakeDetection?.fakePercentage}%`);
       } catch (err) {
