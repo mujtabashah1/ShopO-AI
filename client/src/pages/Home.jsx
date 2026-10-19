@@ -18,7 +18,7 @@ const features = [
   {
     icon: FiCpu,
     title: 'AI Analysis',
-    description: 'Advanced fake product detection using price comparison, seller ratings, and review analysis.'
+    description: 'Understand shopping risks through price comparisons, seller ratings, and review analysis.'
   },
   {
     icon: FiBarChart2,

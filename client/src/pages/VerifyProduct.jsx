@@ -145,7 +145,7 @@ const VerifyProduct = () => {
                     <FiCpu size={28} />
                     <div>
                         <h1>Product Verification</h1>
-                        <p>Upload a product image to verify its authenticity using AI analysis</p>
+                        <p>Inspect visible product details with AI. Images alone cannot establish authenticity.</p>
                     </div>
                 </div>
             </div>
@@ -160,6 +160,10 @@ const VerifyProduct = () => {
 
                         {!selectedFile ? (
                             <div
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Choose a product image"
+                                onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileInputRef.current?.click(); } }}
                                 className={`drop-zone ${dragActive ? 'drag-active' : ''}`}
                                 onDragEnter={handleDrag}
                                 onDragOver={handleDrag}

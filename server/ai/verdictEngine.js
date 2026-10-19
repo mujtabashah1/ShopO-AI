@@ -36,8 +36,8 @@ const generateSuggestion = (verdict, score, breakdown) => {
 
   switch (verdict) {
     case 'Buy':
-      return `This product scores ${score}/100 and appears to be authentic. ` +
-             `All indicators look positive. It's generally safe to purchase this product. ` +
+      return `This product scores ${score}/100 based on the available shopping signals. ` +
+             `The available indicators are favorable, but this score cannot establish authenticity or guarantee a safe purchase. ` +
              `Tip: Always verify the seller's return policy before buying.`;
     
     case 'Risky':

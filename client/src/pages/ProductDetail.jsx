@@ -316,7 +316,7 @@ const ProductDetail = () => {
               }}
               disabled={verifying || !product.image}
             >
-              <FiShield /> {verifying ? 'Verifying...' : verifyResult ? `${verifyResult.status} (${verifyResult.confidenceScore}%)` : 'Verify Authenticity'}
+              <FiShield /> {verifying ? 'Verifying...' : verifyResult ? `${verifyResult.status} (${verifyResult.confidenceScore}%)` : 'Inspect Product Image'}
             </button>
           </div>
 
@@ -336,7 +336,7 @@ const ProductDetail = () => {
 
       {/* AI Analysis Section */}
       {loading ? (
-        <LoadingSpinner message="Running AI Analysis... Evaluating authenticity and sentiment." />
+        <LoadingSpinner message="Running AI Analysis... Evaluating shopping signals and review sentiment." />
       ) : error ? (
         <div className="analysis-error">
           <h3>Analysis Failed</h3>
@@ -356,7 +356,8 @@ const ProductDetail = () => {
           {/* Top Row: Gauge + Verdict */}
           <div className="analysis-top-row">
             <div className="analysis-card gauge-card">
-              <h3>Authenticity Score</h3>
+              <h3>Shopping Confidence Score</h3>
+              <p className="text-muted">A rule-based estimate from available data, not proof of authenticity. Confirm the listing, seller, and return policy before buying.</p>
               <AuthenticityGauge score={analysis.authenticityScore} />
             </div>
 
