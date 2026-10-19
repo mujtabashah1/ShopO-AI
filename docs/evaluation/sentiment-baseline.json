@@ -1,0 +1,429 @@
+{
+  "dataset": "UCI Sentiment Labelled Sentences (331)",
+  "source": "https://archive.ics.uci.edu/static/public/331/sentiment+labelled+sentences.zip",
+  "license": "CC BY 4.0",
+  "author": "Dimitrios Kotzias",
+  "sha256": "afc26626d710899948693e1a61405dce197f57ffa719fa1130d346b4cc095343",
+  "source_commit": "4714ed8391f4f042e3d82a6244c8f560b349d52e",
+  "protocol": "No training or threshold tuning. All source sentences evaluated once. Neutral predictions count as errors on binary labels. Macro F1 averages positive/negative labels only. Confidence intervals describe this benchmark, not deployment accuracy.",
+  "versions": {
+    "vaderSentiment": "3.3.2",
+    "textblob": "0.20.1"
+  },
+  "results": {
+    "amazon_cells": {
+      "node_afinn": {
+        "samples": 1000,
+        "accuracy": 0.559,
+        "accuracy_wilson_95": [
+          0.5281,
+          0.5895
+        ],
+        "macro_f1_binary_labels": 0.6719,
+        "neutral_predictions": 378,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 191,
+            "positive": 56,
+            "neutral": 253
+          },
+          "positive": {
+            "negative": 7,
+            "positive": 368,
+            "neutral": 125
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9646,
+            "recall": 0.382,
+            "f1": 0.5473
+          },
+          "positive": {
+            "precision": 0.8679,
+            "recall": 0.736,
+            "f1": 0.7965
+          }
+        }
+      },
+      "python_ensemble": {
+        "samples": 1000,
+        "accuracy": 0.679,
+        "accuracy_wilson_95": [
+          0.6494,
+          0.7072
+        ],
+        "macro_f1_binary_labels": 0.7553,
+        "neutral_predictions": 236,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 247,
+            "positive": 79,
+            "neutral": 174
+          },
+          "positive": {
+            "negative": 6,
+            "positive": 432,
+            "neutral": 62
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9763,
+            "recall": 0.494,
+            "f1": 0.656
+          },
+          "positive": {
+            "precision": 0.8454,
+            "recall": 0.864,
+            "f1": 0.8546
+          }
+        }
+      },
+      "vader_reference": {
+        "samples": 1000,
+        "accuracy": 0.686,
+        "accuracy_wilson_95": [
+          0.6566,
+          0.714
+        ],
+        "macro_f1_binary_labels": 0.7689,
+        "neutral_predictions": 237,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 268,
+            "positive": 69,
+            "neutral": 163
+          },
+          "positive": {
+            "negative": 8,
+            "positive": 418,
+            "neutral": 74
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.971,
+            "recall": 0.536,
+            "f1": 0.6907
+          },
+          "positive": {
+            "precision": 0.8583,
+            "recall": 0.836,
+            "f1": 0.847
+          }
+        }
+      },
+      "textblob_reference": {
+        "samples": 1000,
+        "accuracy": 0.575,
+        "accuracy_wilson_95": [
+          0.5441,
+          0.6053
+        ],
+        "macro_f1_binary_labels": 0.6559,
+        "neutral_predictions": 316,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 175,
+            "positive": 98,
+            "neutral": 227
+          },
+          "positive": {
+            "negative": 11,
+            "positive": 400,
+            "neutral": 89
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9409,
+            "recall": 0.35,
+            "f1": 0.5102
+          },
+          "positive": {
+            "precision": 0.8032,
+            "recall": 0.8,
+            "f1": 0.8016
+          }
+        }
+      }
+    },
+    "imdb": {
+      "node_afinn": {
+        "samples": 1000,
+        "accuracy": 0.578,
+        "accuracy_wilson_95": [
+          0.5471,
+          0.6083
+        ],
+        "macro_f1_binary_labels": 0.6975,
+        "neutral_predictions": 350,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 250,
+            "positive": 52,
+            "neutral": 198
+          },
+          "positive": {
+            "negative": 20,
+            "positive": 328,
+            "neutral": 152
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9259,
+            "recall": 0.5,
+            "f1": 0.6494
+          },
+          "positive": {
+            "precision": 0.8632,
+            "recall": 0.656,
+            "f1": 0.7455
+          }
+        }
+      },
+      "python_ensemble": {
+        "samples": 1000,
+        "accuracy": 0.689,
+        "accuracy_wilson_95": [
+          0.6596,
+          0.7169
+        ],
+        "macro_f1_binary_labels": 0.7601,
+        "neutral_predictions": 197,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 293,
+            "positive": 86,
+            "neutral": 121
+          },
+          "positive": {
+            "negative": 28,
+            "positive": 396,
+            "neutral": 76
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9128,
+            "recall": 0.586,
+            "f1": 0.7138
+          },
+          "positive": {
+            "precision": 0.8216,
+            "recall": 0.792,
+            "f1": 0.8065
+          }
+        }
+      },
+      "vader_reference": {
+        "samples": 1000,
+        "accuracy": 0.677,
+        "accuracy_wilson_95": [
+          0.6474,
+          0.7053
+        ],
+        "macro_f1_binary_labels": 0.7517,
+        "neutral_predictions": 207,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 292,
+            "positive": 85,
+            "neutral": 123
+          },
+          "positive": {
+            "negative": 31,
+            "positive": 385,
+            "neutral": 84
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.904,
+            "recall": 0.584,
+            "f1": 0.7096
+          },
+          "positive": {
+            "precision": 0.8191,
+            "recall": 0.77,
+            "f1": 0.7938
+          }
+        }
+      },
+      "textblob_reference": {
+        "samples": 1000,
+        "accuracy": 0.604,
+        "accuracy_wilson_95": [
+          0.5733,
+          0.6339
+        ],
+        "macro_f1_binary_labels": 0.6933,
+        "neutral_predictions": 276,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 240,
+            "positive": 93,
+            "neutral": 167
+          },
+          "positive": {
+            "negative": 27,
+            "positive": 364,
+            "neutral": 109
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.8989,
+            "recall": 0.48,
+            "f1": 0.6258
+          },
+          "positive": {
+            "precision": 0.7965,
+            "recall": 0.728,
+            "f1": 0.7607
+          }
+        }
+      }
+    },
+    "yelp": {
+      "node_afinn": {
+        "samples": 1000,
+        "accuracy": 0.552,
+        "accuracy_wilson_95": [
+          0.521,
+          0.5826
+        ],
+        "macro_f1_binary_labels": 0.6497,
+        "neutral_predictions": 364,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 170,
+            "positive": 73,
+            "neutral": 257
+          },
+          "positive": {
+            "negative": 11,
+            "positive": 382,
+            "neutral": 107
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9392,
+            "recall": 0.34,
+            "f1": 0.4993
+          },
+          "positive": {
+            "precision": 0.8396,
+            "recall": 0.764,
+            "f1": 0.8
+          }
+        }
+      },
+      "python_ensemble": {
+        "samples": 1000,
+        "accuracy": 0.654,
+        "accuracy_wilson_95": [
+          0.624,
+          0.6828
+        ],
+        "macro_f1_binary_labels": 0.7245,
+        "neutral_predictions": 230,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 236,
+            "positive": 100,
+            "neutral": 164
+          },
+          "positive": {
+            "negative": 16,
+            "positive": 418,
+            "neutral": 66
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9365,
+            "recall": 0.472,
+            "f1": 0.6277
+          },
+          "positive": {
+            "precision": 0.8069,
+            "recall": 0.836,
+            "f1": 0.8212
+          }
+        }
+      },
+      "vader_reference": {
+        "samples": 1000,
+        "accuracy": 0.634,
+        "accuracy_wilson_95": [
+          0.6037,
+          0.6633
+        ],
+        "macro_f1_binary_labels": 0.7147,
+        "neutral_predictions": 263,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 226,
+            "positive": 88,
+            "neutral": 186
+          },
+          "positive": {
+            "negative": 15,
+            "positive": 408,
+            "neutral": 77
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.9378,
+            "recall": 0.452,
+            "f1": 0.61
+          },
+          "positive": {
+            "precision": 0.8226,
+            "recall": 0.816,
+            "f1": 0.8193
+          }
+        }
+      },
+      "textblob_reference": {
+        "samples": 1000,
+        "accuracy": 0.584,
+        "accuracy_wilson_95": [
+          0.5532,
+          0.6142
+        ],
+        "macro_f1_binary_labels": 0.6721,
+        "neutral_predictions": 309,
+        "confusion_matrix": {
+          "negative": {
+            "negative": 197,
+            "positive": 88,
+            "neutral": 215
+          },
+          "positive": {
+            "negative": 19,
+            "positive": 387,
+            "neutral": 94
+          }
+        },
+        "per_class": {
+          "negative": {
+            "precision": 0.912,
+            "recall": 0.394,
+            "f1": 0.5503
+          },
+          "positive": {
+            "precision": 0.8147,
+            "recall": 0.774,
+            "f1": 0.7938
+          }
+        }
+      }
+    }
+  }
+}
