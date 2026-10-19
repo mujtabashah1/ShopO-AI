@@ -135,6 +135,9 @@ const searchProducts = async (req, res) => {
     // Step 1: Check cache
     if (!shouldRefresh) {
       const cachedSearch = await Search.findOne({
+        user: req.user.userId,
+        cacheVersion: 2,
+        createdAt: { $gt: new Date(Date.now() - 3600000) },
         query,
         platforms: { $all: filteredPlatforms, $size: filteredPlatforms.length }
       }).sort({ createdAt: -1 });
@@ -145,9 +148,9 @@ const searchProducts = async (req, res) => {
           products: cachedSearch.products,
           cached: true,
           cachedAt: cachedSearch.createdAt,
-          platformResults: {},
           totalProducts: cachedSearch.products.length,
-          scrapeMethod: 'cache'
+          scrapeMethod: 'cache',
+          platformResults: cachedSearch.platformResults || {}
         });
       }
     } else {
@@ -203,6 +206,7 @@ const searchProducts = async (req, res) => {
     // Step 3: Cache results
     if (products.length > 0) {
       await Search.deleteMany({
+        user: req.user.userId,
         query,
         platforms: { $all: filteredPlatforms, $size: filteredPlatforms.length }
       });
@@ -211,7 +215,8 @@ const searchProducts = async (req, res) => {
         user: req.user.userId,
         query,
         platforms: filteredPlatforms,
-        products
+        products,
+        platformResults
       });
       await searchDoc.save();
     }
@@ -257,6 +262,7 @@ const streamSearchProducts = async (req, res) => {
   });
 
   const sendEvent = (event, data) => {
+    if (res.destroyed || res.writableEnded) return;
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   };
 
@@ -288,6 +294,9 @@ const streamSearchProducts = async (req, res) => {
     // Check cache first
     if (!shouldRefresh) {
       const cachedSearch = await Search.findOne({
+        user: req.user.userId,
+        cacheVersion: 2,
+        createdAt: { $gt: new Date(Date.now() - 3600000) },
         query,
         platforms: { $all: filteredPlatforms, $size: filteredPlatforms.length }
       }).sort({ createdAt: -1 });
@@ -298,7 +307,8 @@ const streamSearchProducts = async (req, res) => {
           cached: true,
           cachedAt: cachedSearch.createdAt,
           totalProducts: cachedSearch.products.length,
-          scrapeMethod: 'cache'
+          scrapeMethod: 'cache',
+          platformResults: cachedSearch.platformResults || {}
         });
         res.end();
         return;
@@ -558,6 +568,7 @@ const streamSearchProducts = async (req, res) => {
     // Cache results
     if (allProducts.length > 0) {
       await Search.deleteMany({
+        user: req.user.userId,
         query,
         platforms: { $all: filteredPlatforms, $size: filteredPlatforms.length }
       });
@@ -565,7 +576,8 @@ const streamSearchProducts = async (req, res) => {
         user: req.user.userId,
         query,
         platforms: filteredPlatforms,
-        products: allProducts
+        products: allProducts,
+        platformResults
       });
       await searchDoc.save().catch(err => console.error('Cache save error:', err.message));
     }

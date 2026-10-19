@@ -17,6 +17,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { timeAgo } from '../utils/helpers';
 import './Results.css';
+import { openSearchStream } from '../services/searchStream';
 
 const Results = () => {
   const location = useLocation();
@@ -74,17 +75,14 @@ const Results = () => {
     setActivePlatforms(new Set());
     setStreaming(true);
 
-    // Build SSE URL with auth token
-    const token = localStorage.getItem('smartshop_token');
+    // Credentials are sent in the Authorization header.
     const params = new URLSearchParams({
       q: query,
       ...(platformsKey && { platforms: platformsKey }),
-      ...(forceRefresh && { forceRefresh: 'true' }),
-      token // pass token as query param for SSE (no custom headers with EventSource)
+      ...(forceRefresh && { forceRefresh: 'true' })
     });
 
-    const url = `http://localhost:5000/api/products/search/stream?${params}`;
-    const es = new EventSource(url);
+    const es = openSearchStream(params);
     eventSourceRef.current = es;
 
     // --- Cached response: full data arrives at once ---
@@ -94,6 +92,7 @@ const Results = () => {
       setIsCached(true);
       setCachedAt(data.cachedAt || null);
       setScrapeMethod('cache');
+      setPlatformResults(data.platformResults || {});
       setLoading(false);
       setRefreshing(false);
       setStreaming(false);
@@ -199,20 +198,10 @@ const Results = () => {
       setLoading(false);
       setRefreshing(false);
       setStreaming(false);
+      setActivePlatforms(new Set());
+      setAiFiltering(false);
       closeStream();
     });
-
-    // Native EventSource error (connection dropped, etc.)
-    es.onerror = () => {
-      // Only show error if we haven't received any data yet
-      if (products.length === 0 && !isCached) {
-        // EventSource auto-reconnects — close it to stop retry
-        closeStream();
-        setStreaming(false);
-        setLoading(false);
-        setRefreshing(false);
-      }
-    };
 
   }, [query, platformsKey, navigate, closeStream]);
 

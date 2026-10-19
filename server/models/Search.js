@@ -55,6 +55,8 @@ const searchSchema = new mongoose.Schema({
     default: ['aliexpress', 'ebay', 'amazon', 'daraz']
   },
   products: [productItemSchema],
+  platformResults: { type: mongoose.Schema.Types.Mixed, default: {} },
+  cacheVersion: { type: Number, default: 2 },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -63,6 +65,6 @@ const searchSchema = new mongoose.Schema({
 });
 
 // Index for fast cache lookups: find by query + platforms combination
-searchSchema.index({ query: 1, platforms: 1, createdAt: -1 });
+searchSchema.index({ user: 1, cacheVersion: 1, query: 1, platforms: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Search', searchSchema);

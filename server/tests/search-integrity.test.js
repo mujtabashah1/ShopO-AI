@@ -7,6 +7,10 @@ const products = [1, 2].map(n => ({ name: `Headphones ${n}`, price: 100, platfor
 class Search {
   async save() {}
   static async deleteMany() {}
+  static findOne(filter) {
+    Search.lastFilter = filter;
+    return { sort: async () => ({ products, platformResults: { aliexpress: { status: 'failed', count: 0 } } }) };
+  }
 }
 Module._load = function (name, ...args) {
   if (name === '../models/Search') return Search;
@@ -38,4 +42,20 @@ test('failed marketplaces never receive invented listings or prices', async () =
   assert.equal(completed.platformResults.aliexpress.status, 'failed');
   const partial = events.find(e => e.event === 'platform_done' && e.data.platform === 'aliexpress');
   assert.equal(partial.data.status, 'failed');
+});
+
+test('cache reads enforce freshness, user isolation and the corrected data version', async () => {
+  const events = [];
+  await streamSearchProducts({ query: { q: 'headphones', platforms: 'amazon,aliexpress' }, user: { userId: 'user-a' } }, {
+    writeHead() {}, end() {},
+    write(chunk) {
+      const match = chunk.match(/^event: (.+)\ndata: (.+)\n/);
+      if (match) events.push({ event: match[1], data: JSON.parse(match[2]) });
+    }
+  });
+  assert.equal(Search.lastFilter.user, 'user-a');
+  assert.equal(Search.lastFilter.cacheVersion, 2);
+  assert.ok(Date.now() - Search.lastFilter.createdAt.$gt.getTime() <= 3601000);
+  assert.equal(events[0].event, 'cached');
+  assert.equal(events[0].data.platformResults.aliexpress.status, 'failed');
 });

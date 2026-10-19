@@ -17,15 +17,12 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-    // 1. Extract token from Authorization header or query param (for SSE)
+    // 1. Extract token from Authorization header
     const authHeader = req.header('Authorization');
     let token;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.replace('Bearer ', '');
-    } else if (req.query.token) {
-      // SSE (EventSource) can't set custom headers — accept token via query param
-      token = req.query.token;
     }
 
     if (!token) {
