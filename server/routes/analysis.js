@@ -19,6 +19,7 @@ const auth = require('../middleware/auth');
 
 const validate = require('../middleware/validateRequest');
 const { analysisLimiter } = require('../middleware/rateLimiter');
+const { withWorkCapacity } = require('../middleware/workCapacity');
 const router = express.Router();
 
 // Configure multer for image uploads (memory storage — no files saved to disk)
@@ -36,13 +37,13 @@ const upload = multer({
 });
 
 // POST /api/analysis/analyze — Run AI analysis
-router.post('/analyze', auth, analysisLimiter, validate.analysis, analyzeProduct);
+router.post('/analyze', auth, analysisLimiter, validate.analysis, withWorkCapacity(analyzeProduct));
 
 // POST /api/analysis/verify-image — Verify product image authenticity (file upload)
-router.post('/verify-image', auth, analysisLimiter, upload.single('image'), verifyImage);
+router.post('/verify-image', auth, analysisLimiter, upload.single('image'), withWorkCapacity(verifyImage));
 
 // POST /api/analysis/verify-url — Verify product image from URL (used by ProductDetail)
-router.post('/verify-url', auth, analysisLimiter, validate.imageUrl, verifyImageUrl);
+router.post('/verify-url', auth, analysisLimiter, validate.imageUrl, withWorkCapacity(verifyImageUrl));
 
 // GET /api/analysis/history — Get past analyses (paginated)
 router.get('/history', auth, validate.history, getHistory);

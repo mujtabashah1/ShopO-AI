@@ -14,6 +14,10 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import os
 import secrets
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 from pydantic import BaseModel, Field, StringConstraints
 from typing import Annotated, List
 import time

@@ -4,7 +4,7 @@ const markets = {
   daraz: ['daraz.pk'],
   aliexpress: ['aliexpress.com', 'aliexpress.us']
 };
-const imageHosts = ['m.media-amazon.com', 'images-na.ssl-images-amazon.com', 'i.ebayimg.com', 'img.alicdn.com', 'ae01.alicdn.com', 'ae-pic-a1.aliexpress-media.com', 'ae-pic-a2.aliexpress-media.com', 'static-01.daraz.pk', 'static-02.daraz.pk'];
+const imageHosts = ['m.media-amazon.com', 'images-na.ssl-images-amazon.com', 'i.ebayimg.com', 'img.alicdn.com', 'ae01.alicdn.com', 'ae-pic-a1.aliexpress-media.com', 'ae-pic-a2.aliexpress-media.com', 'static-01.daraz.pk', 'static-02.daraz.pk', 'img.drz.lazcdn.com', 'img.lazcdn.com'];
 
 function permittedUrl(value, hosts, allowSubdomains = false) {
   if (typeof value !== 'string' || value.length > 2048) return false;
@@ -40,7 +40,7 @@ function analysis(req, res, next) {
   if (b.reviews !== undefined && (!Array.isArray(b.reviews) || b.reviews.length > 100 ||
       b.reviews.some(r => typeof r !== 'string' || r.length > 5000))) return invalid(res);
   if (b.productLink && b.productLink !== '#' && !permittedUrl(b.productLink, markets[b.platform.toLowerCase()], true)) return invalid(res);
-  if (b.productImage && !permittedUrl(b.productImage, imageHosts)) return invalid(res);
+  if (b.productImage && (typeof b.productImage !== 'string' || b.productImage.length > 2048 || !/^https:\/\//.test(b.productImage))) return invalid(res);
   next();
 }
 

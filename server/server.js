@@ -54,7 +54,7 @@ app.use(cors({
   credentials: true
 }));
 
-// Parse JSON request bodies (50mb to accommodate raw HTML from extension)
+// Bound JSON bodies; extension HTML has a separate budget.
 app.use('/api/extension', express.json({ limit: '5mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use((req, res, next) => {
