@@ -14,6 +14,8 @@ const { searchProducts, streamSearchProducts, identifyProductFromImage } = requi
 const auth = require('../middleware/auth');
 const { searchLimiter } = require('../middleware/rateLimiter');
 
+const validate = require('../middleware/validateRequest');
+const { analysisLimiter } = require('../middleware/rateLimiter');
 const router = express.Router();
 
 // Image upload for search-by-image (10MB max, in memory)
@@ -21,8 +23,8 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (/^image\//.test(file.mimetype)) cb(null, true);
-    else cb(new Error('Only image uploads allowed'));
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) cb(null, true);
+    else cb(Object.assign(new Error('Only JPG, PNG, and WEBP images are allowed.'), { status: 400 }));
   }
 });
 
@@ -30,19 +32,19 @@ const upload = multer({
  * GET /api/products/search?q=iPhone+15&platforms=ebay,amazon,aliexpress,daraz
  * Standard JSON response (waits for all platforms).
  */
-router.get('/search', auth, searchLimiter, searchProducts);
+router.get('/search', auth, searchLimiter, validate.search, searchProducts);
 
 /**
  * GET /api/products/search/stream?q=iPhone+15&platforms=ebay,amazon
  * SSE stream — sends results as each platform finishes.
  */
-router.get('/search/stream', auth, searchLimiter, streamSearchProducts);
+router.get('/search/stream', auth, searchLimiter, validate.search, streamSearchProducts);
 
 /**
  * POST /api/products/identify-image
  * Multipart upload — uses Gemini Vision to identify the product, returns a
  * search query that the frontend then runs through /search/stream.
  */
-router.post('/identify-image', auth, upload.single('image'), identifyProductFromImage);
+router.post('/identify-image', auth, analysisLimiter, upload.single('image'), identifyProductFromImage);
 
 module.exports = router;

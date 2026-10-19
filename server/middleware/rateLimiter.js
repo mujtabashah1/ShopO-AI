@@ -31,4 +31,21 @@ const searchLimiter = rateLimit({
   legacyHeaders: false
 });
 
-module.exports = { apiLimiter, searchLimiter };
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many sign-in attempts. Please try again in 15 minutes.' }
+});
+
+const analysisLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many analysis requests. Please try again in a minute.' }
+});
+
+module.exports = { apiLimiter, searchLimiter, authLimiter, analysisLimiter };

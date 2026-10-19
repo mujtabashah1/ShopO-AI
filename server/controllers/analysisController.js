@@ -321,7 +321,7 @@ const verifyImage = async (req, res) => {
     const { category } = req.body;
     const validCategories = ['electronics', 'fashion', 'cosmetics', 'accessories'];
 
-    if (!category || !validCategories.includes(category.toLowerCase())) {
+    if (typeof category !== 'string' || !validCategories.includes(category.toLowerCase())) {
       return res.status(400).json({
         message: 'Please select a valid category: electronics, fashion, cosmetics, or accessories.'
       });
@@ -366,6 +366,9 @@ const verifyImageUrl = async (req, res) => {
     }
 
     const validCategories = ['electronics', 'fashion', 'cosmetics', 'accessories'];
+    if (category !== undefined && (typeof category !== 'string' || !validCategories.includes(category.toLowerCase()))) {
+      return res.status(400).json({ message: 'Invalid image category.' });
+    }
     const cat = (category || 'electronics').toLowerCase();
 
     console.log(`🔍 Verifying image from URL: "${imageUrl.substring(0, 80)}..." in category "${cat}"`);
@@ -373,6 +376,9 @@ const verifyImageUrl = async (req, res) => {
     // Download the image
     const response = await axios.get(imageUrl, {
       responseType: 'arraybuffer',
+      maxRedirects: 0,
+      maxContentLength: 10 * 1024 * 1024,
+      proxy: false,
       timeout: 15000,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -380,7 +386,10 @@ const verifyImageUrl = async (req, res) => {
     });
 
     const imageBuffer = Buffer.from(response.data);
-    const contentType = response.headers['content-type'] || 'image/jpeg';
+    const contentType = (response.headers['content-type'] || '').split(';')[0];
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+      return res.status(400).json({ message: 'The URL must return a JPG, PNG, or WEBP image.' });
+    }
     const fileSize = imageBuffer.length;
 
     // Extract filename from URL

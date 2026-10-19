@@ -32,7 +32,11 @@ const productRoutes = require('./routes/products');
 const analysisRoutes = require('./routes/analysis');
 const extensionRoutes = require('./routes/extension');
 
+const { allowedOrigins, validateEnvironment } = require('./config/security');
 const app = express();
+app.disable('x-powered-by');
+if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY);
+const origins = allowedOrigins();
 
 // ===== MIDDLEWARE =====
 
@@ -42,11 +46,8 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Always allow localhost, Vercel domains, and the custom domain
-    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app') || origin.includes('techskytechnical.com') || origin === process.env.CLIENT_URL) {
-      return callback(null, true);
-    }
-    
+    if (origins.has(origin)) return callback(null, true);
+
     // If none match, just return false instead of throwing a 500 error
     callback(null, false);
   },
@@ -54,7 +55,14 @@ app.use(cors({
 }));
 
 // Parse JSON request bodies (50mb to accommodate raw HTML from extension)
-app.use(express.json({ limit: '50mb' }));
+app.use('/api/extension', express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
@@ -88,13 +96,7 @@ app.use((req, res) => {
 });
 
 // Global error handler
-app.use((err, req, res, next) => {
-  console.error('Server Error:', err.stack);
-  res.status(500).json({
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
+app.use(require('./middleware/errorHandler'));
 
 // ===== START SERVER =====
 
@@ -102,6 +104,7 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
+    validateEnvironment();
     // Connect to MongoDB
     await connectDB();
 
@@ -121,4 +124,5 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (require.main === module) startServer();
+module.exports = app;

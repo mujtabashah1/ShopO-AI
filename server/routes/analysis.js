@@ -17,6 +17,8 @@ const multer = require('multer');
 const { analyzeProduct, getHistory, getAnalysisById, verifyImage, verifyImageUrl } = require('../controllers/analysisController');
 const auth = require('../middleware/auth');
 
+const validate = require('../middleware/validateRequest');
+const { analysisLimiter } = require('../middleware/rateLimiter');
 const router = express.Router();
 
 // Configure multer for image uploads (memory storage — no files saved to disk)
@@ -28,24 +30,27 @@ const upload = multer({
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Only JPG, PNG, and WEBP images are allowed.'), false);
+            cb(Object.assign(new Error('Only JPG, PNG, and WEBP images are allowed.'), { status: 400 }), false);
         }
     }
 });
 
 // POST /api/analysis/analyze — Run AI analysis
-router.post('/analyze', auth, analyzeProduct);
+router.post('/analyze', auth, analysisLimiter, validate.analysis, analyzeProduct);
 
 // POST /api/analysis/verify-image — Verify product image authenticity (file upload)
-router.post('/verify-image', auth, upload.single('image'), verifyImage);
+router.post('/verify-image', auth, analysisLimiter, upload.single('image'), verifyImage);
 
 // POST /api/analysis/verify-url — Verify product image from URL (used by ProductDetail)
-router.post('/verify-url', auth, verifyImageUrl);
+router.post('/verify-url', auth, analysisLimiter, validate.imageUrl, verifyImageUrl);
 
 // GET /api/analysis/history — Get past analyses (paginated)
-router.get('/history', auth, getHistory);
+router.get('/history', auth, validate.history, getHistory);
 
 // GET /api/analysis/:id — Get single analysis detail
-router.get('/:id', auth, getAnalysisById);
+router.get('/:id', auth, (req, res, next) => {
+  if (!/^[a-f0-9]{24}$/i.test(req.params.id)) return res.status(400).json({ message: 'Invalid analysis ID.' });
+  next();
+}, getAnalysisById);
 
 module.exports = router;
