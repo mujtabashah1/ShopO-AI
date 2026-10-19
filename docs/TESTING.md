@@ -32,7 +32,7 @@ Commands used for the repeatable quality gate:
 ```powershell
 npm test
 Set-Location client
-npm test -- --watchAll=false --runInBand
+npm test
 npm run build
 git diff --check
 ```

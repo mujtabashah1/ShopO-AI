@@ -31,6 +31,6 @@ $chromePath = Join-Path $env:ProgramFiles 'Google/Chrome/Application/chrome.exe'
 if (Test-Path $chromePath) { $env:PUPPETEER_EXECUTABLE_PATH = $chromePath }
 Start-LocalService 'python-ai' (Join-Path $projectRoot 'python-ai/.venv/Scripts/python.exe') '-m uvicorn main:app --host 127.0.0.1 --port 8000' (Join-Path $projectRoot 'python-ai') 8000
 Start-LocalService 'server' (Get-Command node.exe).Source 'server.js' (Join-Path $projectRoot 'server') 5000
-Start-LocalService 'client' (Get-Command node.exe).Source 'node_modules/react-scripts/bin/react-scripts.js start' (Join-Path $projectRoot 'client') 3000
+Start-LocalService 'client' (Get-Command node.exe).Source 'node_modules/vite/bin/vite.js --host 127.0.0.1' (Join-Path $projectRoot 'client') 3000
 Write-Host "App: http://localhost:3000"
 Write-Host "Service logs: $runtimeRoot"

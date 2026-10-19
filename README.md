@@ -100,7 +100,7 @@ More detail is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 Requirements:
 
-- Node.js 20 or newer
+- Node.js 24 LTS (22.12 or newer supported)
 - Python 3.10 or newer
 - MongoDB running on port 27017
 - Chrome or Chromium for marketplace scraping
@@ -157,7 +157,7 @@ powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 
 Copy `.env.example` and replace its placeholders. Generate a secret with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Startup rejects missing, short, or placeholder JWT secrets. Do not commit `.env`.
 
-Set `REACT_APP_API_URL` in `client/.env` before building a deployed frontend, including the `/api` suffix. `CLIENT_URL` accepts comma-separated **exact** browser origins; preview deployments require explicit entries. Set the same `PYTHON_AI_KEY` in both services when Python analysis is enabled in production. See [deployment notes](docs/DEPLOYMENT.md).
+Set `VITE_API_URL` in `client/.env` before building a deployed frontend, including the `/api` suffix. `CLIENT_URL` accepts comma-separated **exact** browser origins; preview deployments require explicit entries. Set the same `PYTHON_AI_KEY` in both services when Python analysis is enabled in production. See [deployment notes](docs/DEPLOYMENT.md).
 
 ## Database access
 
@@ -189,7 +189,7 @@ Create users through the registration screen or `/api/auth/register` so password
 | GET | `/api/products/search` | Search marketplaces |
 | GET | `/api/products/search/stream` | Stream search progress and results |
 | POST | `/api/analysis/analyze` | Run and save an analysis |
-| GET | `/api/analysis/history` | Read the current user’s history |
+| GET | `/api/analysis/history` | Read the current userâ€™s history |
 | GET | `/api/analysis/:id` | Read one saved analysis |
 | POST | `/api/analysis/verify-image` | Verify an uploaded image through the configured provider |
 
@@ -200,7 +200,7 @@ See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for the remaining routes.
 ```bash
 npm test
 cd client
-npm test -- --watchAll=false --runInBand
+npm test
 npm run build
 ```
 
