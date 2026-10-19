@@ -1,6 +1,10 @@
 # ShopO-AI
 
-ShopO-AI is our Final Year Project at FAST-NUCES Peshawar. It lets a user search for a product across several marketplaces, compare prices, and inspect the signals used to produce a Buy, Risky, or Avoid recommendation.
+**ShopO-AI helps shoppers compare marketplace prices and understand the signals behind a buying decision.** Search Amazon, Daraz, AliExpress, and eBay, receive results as they arrive, explore review sentiment and seller signals, and revisit saved analyses. Optional image analysis adds visual observations to the research process.
+
+Built with React, Express, MongoDB, and an optional Python analysis service, ShopO-AI emphasizes explainable shopping guidance. Scores are heuristic estimates, not authenticity certifications.
+
+**Release status: hardened prototype; commercial launch remains gated.** See the [market-readiness audit](docs/MARKET_READINESS.md) for verified changes, bottlenecks, and release criteria. This project originated as a Final Year Project at FAST-NUCES Peshawar.
 
 The project was developed by **Syed Ahmad Mujtaba Shah** and **Muhammad Waseel** under the supervision of **Dr. Usman Wajid**.
 
@@ -125,6 +129,8 @@ Then install the Python packages and create the local environment file:
 ```bash
 pip install -r python-ai/requirements.txt
 cp .env.example .env
+cp client/.env.example client/.env
+# Replace JWT_SECRET with a generated secret before starting.
 npm run dev-all
 ```
 
@@ -149,7 +155,9 @@ powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 | `OPENROUTER_MODEL` | Vision model used through OpenRouter |
 | `CLIENT_URL` | Allowed frontend origin |
 
-Copy `.env.example` and replace its placeholders. Do not commit `.env`.
+Copy `.env.example` and replace its placeholders. Generate a secret with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Startup rejects missing, short, or placeholder JWT secrets. Do not commit `.env`.
+
+Set `REACT_APP_API_URL` in `client/.env` before building a deployed frontend, including the `/api` suffix. `CLIENT_URL` accepts comma-separated **exact** browser origins; preview deployments require explicit entries. Set the same `PYTHON_AI_KEY` in both services when Python analysis is enabled in production. See [deployment notes](docs/DEPLOYMENT.md).
 
 ## Database access
 
@@ -196,23 +204,15 @@ npm test -- --watchAll=false --runInBand
 npm run build
 ```
 
-The latest local audit found:
+Current deterministic coverage includes 16 Node checks, six Python checks, and five frontend checks. Search regression tests use mocked marketplace adapters; they do not certify live marketplace availability. Earlier live counts and screenshots are historical examples.
 
-- Amazon: 23 products returned for `wireless headphones`
-- Daraz: 115 products returned
-- AliExpress: 104 products returned
-- eBay: no products returned because its current page no longer matches the scraper selectors
-- Node tests: 4 passed
-- Python tests: 3 passed
-- React tests: 3 passed
-
-Live scraper counts change and are not used in CI. CI runs only stable unit tests and the frontend build.
+CI runs backend and Python tests, frontend tests, and a production frontend build. Dependency audits and live deployment checks are separate release gates.
 
 ## Current limitations
 
 - eBay selectors need to be updated.
 - Marketplace page changes or access controls can break a scraper.
-- The currency conversion code does not use a live exchange-rate feed.
+- Currency conversion fetches live rates but falls back to static estimates when providers fail.
 - Sentiment analysis works best on straightforward English reviews.
 - Image verification depends on an external provider.
 - The local logo matcher and ONNX file are not connected to the active API.

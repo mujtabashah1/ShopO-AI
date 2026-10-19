@@ -1,5 +1,11 @@
 # Testing and validation
 
+## 20 October 2026 hardening checks
+
+The current deterministic suite passed 16 Node tests, six Python tests, and five frontend tests. The optimized production frontend build also passed after the dependency updates. New coverage includes search integrity, cache isolation/freshness, request validation, HTTP boundaries, work limits, shared browser launch, and authenticated SSE parsing. See [MARKET_READINESS.md](MARKET_READINESS.md) for current dependency findings and release gates.
+
+## Historical audit: 13 October 2026
+
 Audit environment: Windows, 13 October 2026. Local endpoints used MongoDB on port 27017, Express on 5000, FastAPI on 8000, and React on 3000.
 
 | Check | Result | Evidence / scope |

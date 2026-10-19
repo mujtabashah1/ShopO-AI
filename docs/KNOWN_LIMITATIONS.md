@@ -3,7 +3,7 @@
 - The trust score is a hand-authored risk heuristic with no labelled counterfeit evaluation.
 - eBay’s current page structure did not match the implemented selectors during the audit.
 - Scrapers depend on third-party HTML and access policies; partial failures are expected and isolated.
-- Currency normalization is not backed by a live exchange-rate source.
+- Currency normalization fetches live rates but falls back to static estimates; freshness and fallback status need clearer presentation.
 - Review sentiment is strongest for straightforward English and can misread context, sarcasm, or mixed languages.
 - Image verification requires an OpenRouter key and sends requested images to that provider.
 - The perceptual-hash logo detector and ONNX artifact are not connected to the running API.
@@ -16,9 +16,11 @@
 ## Roadmap
 
 1. Repair eBay extraction with sanitized DOM fixtures and selector regression tests.
-2. Replace adapter-specific currency constants with a cached, attributed exchange-rate service.
+2. Expose exchange-rate source, age, and fallback status throughout price comparisons.
 3. Build a provenance-cleared labelled evaluation set and publish a reproducible model card.
 4. Define and integrate the ONNX model only after documenting preprocessing, labels, licensing, and benchmark results.
 5. Add provider-independent image tests and explicit consent copy for external vision calls.
 6. Add Playwright smoke coverage against mock marketplace fixtures.
 7. Add password recovery, refresh-token rotation, structured logs, and production monitoring.
+
+See [MARKET_READINESS.md](MARKET_READINESS.md) for the current release audit and prioritized launch gates.
